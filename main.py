@@ -13,7 +13,7 @@ from aiogram.filters.state import StateFilter
 from aiogram.fsm.state import State, StatesGroup
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.storage.memory import MemoryStorage
-from aiogram.types import Message, InlineKeyboardButton, InlineKeyboardMarkup, CallbackQuery, ReplyKeyboardMarkup, KeyboardButton, ReplyKeyboardRemove
+from aiogram.types import Message, CommandObject, InlineKeyboardButton, InlineKeyboardMarkup, CallbackQuery, ReplyKeyboardMarkup, KeyboardButton, ReplyKeyboardRemove
 import shelve
 
 BOT_TOKEN = os.getenv("BOT_TOKEN")
@@ -52,14 +52,16 @@ class UserState(StatesGroup):
     slot_time = State()
 
 @router.message(CommandStart())
-async def command_start_handler(message: Message, state: FSMContext) -> None:
+async def command_start_handler(message: Message, command: CommandObject, state: FSMContext) -> None:
     await state.set_state(UserState.welcome)
-    await message.answer(
-        "Test 1",
-        reply_markup=InlineKeyboardMarkup(inline_keyboard=[
-            [InlineKeyboardButton(text="Надо вносить все приёмы пищи?", callback_data="next")]
-        ])
-    )
+    start_param = command.args
+    if start_param:
+        await state.update_data(start_param=start_param)
+        await message.answer(f"🔗 Параметр из ссылки: {start_param}")
+    else:
+        await message.answer("👋 Обычный запуск бота.")
+
+    
     
 
 
