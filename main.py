@@ -21,6 +21,9 @@ import re
 from google.oauth2.service_account import Credentials
 
 BOT_TOKEN = os.getenv("BOT_TOKEN")
+FAIL_KEYBOARD = InlineKeyboardMarkup(inline_keyboard=[
+            [InlineKeyboardButton(text="Попробовать снова", callback_data="retry")]
+            ])
 
 # from auth import BOT_TOKEN
 bot = Bot(token=BOT_TOKEN, default=DefaultBotProperties(
@@ -62,20 +65,73 @@ async def command_start_handler(message: Message, command: CommandObject, state:
     if sheet_id:
         try:
             await state.update_data(sheet_id=sheet_id)
-            range_name = "B2:AB2"
-            data = await get_google_sheet_data(sheet_id,range_name)
-            formatted_data = "\n".join([", ".join(row) for row in data])
-            await message.answer(f"📊 Данные из таблицы:\n{formatted_data}")
+            text = "👋 Добро пожаловать в наш чат-бот! Мы рады, что вы здесь. \n\n🌟В этом боте вы сможете подробнее узнать про нашу компанию, вакансию, записаться на собеседование, пройти обучение и устроиться на работу 🍀💬⚠️ \n\nЕсли бот где-то не отвечает, подождите до 30 секунд, попробуйте повторно нажать на нужную кнопку или написать ее текстом, через 60 секунд выйти из бота и зайти обратно, а так же можете нажать на эту команду /start для запуска бота с начала."
+            keyboard = InlineKeyboardMarkup(inline_keyboard=[
+            [InlineKeyboardButton(text="Поехали", callback_data="next")]
+            ])
+            
+            await message.answer(f"{text}", reply_markup = keyboard)
         except Exception as e:
             await message.answer(f"❌ Ошибка при загрузке данных: {str(e)}")
     else:
         await message.answer("👋 Обычный запуск бота.")
 
     
+@router.callback_query(StateFilter(UserState.welcome))
+async def pd1(callback_query: CallbackQuery, state: FSMContext):
+    user_data = await state.get_data()
+    sheet_id = user_data.get('sheet_id')
     
+    try:
+            range_name = "F2:F2"
+            data = await get_google_sheet_data(sheet_id,range_name)
+            value = data[0][0]
+            keyboard = InlineKeyboardMarkup(inline_keyboard=[
+            [InlineKeyboardButton(text="Продолжить", callback_data="next")]
+            ])
+            await callback_query.message.answer(f"{value}", reply_markup = keyboard)
+            await state.set_state(UserState.pd1)
+    except Exception as e:
+            await callback_query.message.answer(f"❌ Ошибка при загрузке данных: {str(e)}")
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# @router.message(CommandStart())
+# async def command_start_handler(message: Message, command: CommandObject, state: FSMContext) -> None:
+#     await state.set_state(UserState.welcome)
+#     sheet_id  = command.args
+#     if sheet_id:
+#         try:
+#             await state.update_data(sheet_id=sheet_id)
+#             range_name = "B2:B2"
+#             data = await get_google_sheet_data(sheet_id,range_name)
+#             value = data[0][0]
+#             await message.answer(f"{value}")
+#         except Exception as e:
+#             await message.answer(f"❌ Ошибка при загрузке данных: {str(e)}")
+#     else:
+#         await message.answer("👋 Обычный запуск бота.")
+
+    
 
 
 
