@@ -17,6 +17,7 @@ from aiogram.types import Message, InlineKeyboardButton, InlineKeyboardMarkup, C
 from aiogram.filters.command import CommandObject
 import shelve
 import gspread
+import re
 from google.oauth2.service_account import Credentials
 
 BOT_TOKEN = os.getenv("BOT_TOKEN")
@@ -71,6 +72,12 @@ async def command_start_handler(message: Message, command: CommandObject, state:
             print(f"Длина ключа: {len(key)} символов")
             print(f"Начинается с: {key[:20]}...")
             print(f"Заканчивается на: ...{key[-20:]}")
+            required_vars = [
+                "GS_TYPE", "GS_PROJECT_ID", "GS_PRIVATE_KEY_ID",
+                "GS_CLIENT_EMAIL", "GS_CLIENT_ID"
+            ]
+            for var in required_vars:
+                print(f"{var}: {bool(os.getenv(var))}")
     else:
         await message.answer("👋 Обычный запуск бота.")
 
@@ -82,8 +89,6 @@ async def command_start_handler(message: Message, command: CommandObject, state:
 
 
 
-key = "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQDe+KDvhHuqC1Sj\nddkLxDylvsMXa8GO3gOB4r6mIwer8u2hVSDGXzfTaf3FjFjT2yRjUIYcCBdGQUjA\ngEFP2on3hQ3mBv7RTJt/pnSUGhbiOq8tnOXN/qAxCAQgMxzMampUqshqV2wLon5C\nEBUtmF6N/+FJq6w7LTYEVvx0lAP2Y2hlKHSfK/2nCWaO2LQcQ6iM1gqHDhM6FP3G\ngC9N+1uxxSDZ5Gviyfer0nauESfHDIEjx2HoAABZHS89plNMDvmvY/uEZ5n3wU7M\ng9JkjU+2vXuH4HGmIBbb5b67LBbudyAUDI+41nymGdctORt5/X5LkEUYRTVHXKCC\n9YyUmAJVAgMBAAECggEARaGqjLI4dmWcdIHAmvqZH/+/aEiIBWhS+xSHClYlNq8i\nQ8BUgG7K/dR7Yl6OfPbSWcuTXhyuvAt2P1uuSdRLQsfEC+KCYHWGmCow/PFa1SKT\ng3CcmaSbfURuGWos46+V7kP5W7BadxWzTUk9e+Q6HylaP0oD+uUHGfraU0PIKwDR\n++/4VEzdPKQxxYPEPY49KwghUMHGiFdVI4f/M1lNpPUNoWcviWrvDRz8jaD7C/Uq\nTn0ELEGXQZxao6/nchrQgsqf1Chw8S2fveWoazPzoiyTNgec0uq3r5ImTawdYW6b\n/yL9OdNh7BOyRxvDcI/It8IxvGL90Y8v6mJzFziOzwKBgQD6md7Avu7nKOD+sOm6\n7Qbcc0TH8HYAk78kgmRJvCWmZ72TWiL+IBD9b7XLbANZxo8WNEAa5A2LdDfGHyCj\nXggaSxBFh46M2YFN7mSek5yUYsV+CHfYuw8ZGYA3NEkHKkXgfUPk6LxY/fAlrC4U\nnfTYLqwPrXs2z3fXEcmrVlsTuwKBgQDjxl9rfMIU0Q6dZLJki4YJV9YDerSs8zNA\nSrr634YBdgy/sfdKPf95bjnOCsEqG24V5xZrdGyX3VovOWuv6svlEb7xTFpnbRt/\nw3fTXE8QkfNh4zbNyLF1Tz9ssu30oqoFzD6IviUphhUptFn0BjcNDIaHOe9sIKLX\n/pj6IeR5LwKBgQCkzG96XZWKGo3rr7flH161tm/y9CUFuCOpBL6i5sHzrqEyt8Hv\nUHMb10y8G6oQbc1HEtFdXb+yh5juByZViM7XS6nFr6GE6rxn3W/6AKSlyFaLzVHT\nCyCgpu50X0PvHFObj4UIkizacRRuEc6z7DRJvleUb8dpggITQzVWIZH/ZQKBgAI7\nNUAWTshpa9062UyG2V9KDvylvRNcpongsYg3nFZzU5ilI6kEhnYoEETmchH5htCM\nHPocf9vU/UctJtLoV+r8i4RNnS0aMoTD426cnuGorFuvICBP8P0XM6Xa8t3MoiHA\naHRqeG65s4dfDuqHDQ8Bqme0t5W1lCLNia4ZmuVdAoGAWPVuERVh/CLA3L2JqxvB\nP5SP84RhXC0I5rW90r3LDAclgcuq2YYfRlKYup/ypsCy7uRLcH4OyEHR18bPav3V\ngd5zB+bHRggW7RXBXJFsSy4qgPdxF1pTCMaPKnAgEfvu+BiP2OR4DWXxZUMtdlQQ\nfVDW33bMm16F5xC/3s7/ZCg=\n-----END PRIVATE KEY-----\n"
-  
 
 
 
