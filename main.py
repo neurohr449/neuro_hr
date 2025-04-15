@@ -212,7 +212,7 @@ async def q3(message: Message, state: FSMContext):
 @router.message(StateFilter(UserState.q3))
 async def q4(message: Message, state: FSMContext):
     ans3 = message.text
-    await state.update_data(ans1=ans3)
+    await state.update_data(ans3=ans3)
     user_data = await state.get_data()
     sheet_id = user_data.get('sheet_id')
     
