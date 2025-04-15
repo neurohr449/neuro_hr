@@ -62,7 +62,7 @@ async def command_start_handler(message: Message, command: CommandObject, state:
     if sheet_id:
         try:
             await state.update_data(sheet_id=sheet_id)
-            range_name = "B1:AB1"
+            range_name = "B2:AB2"
             data = await get_google_sheet_data(sheet_id,range_name)
             formatted_data = "\n".join([", ".join(row) for row in data])
             await message.answer(f"📊 Данные из таблицы:\n{formatted_data}")
@@ -98,7 +98,7 @@ async def command_start_handler(message: Message, command: CommandObject, state:
 
 
 
-async def get_google_sheet_data(sheet_id: str, range_name: str = "A1:C10"):
+async def get_google_sheet_data(sheet_id: str, range_name: str = "B2:AB2"):
     scope = ["https://www.googleapis.com/auth/spreadsheets.readonly"]
     
     creds = Credentials.from_service_account_info({
