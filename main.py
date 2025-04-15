@@ -68,16 +68,6 @@ async def command_start_handler(message: Message, command: CommandObject, state:
             await message.answer(f"📊 Данные из таблицы:\n{formatted_data}")
         except Exception as e:
             await message.answer(f"❌ Ошибка при загрузке данных: {str(e)}")
-            key = os.getenv("GS_PRIVATE_KEY")
-            print(f"Длина ключа: {len(key)} символов")
-            print(f"Начинается с: {key[:20]}...")
-            print(f"Заканчивается на: ...{key[-20:]}")
-            required_vars = [
-                "GS_TYPE", "GS_PROJECT_ID", "GS_PRIVATE_KEY_ID",
-                "GS_CLIENT_EMAIL", "GS_CLIENT_ID"
-            ]
-            for var in required_vars:
-                print(f"{var}: {bool(os.getenv(var))}")
     else:
         await message.answer("👋 Обычный запуск бота.")
 
@@ -126,7 +116,7 @@ async def get_google_sheet_data(sheet_id: str, range_name: str = "A1:C10"):
     }, scopes=scope)
     
     client = gspread.authorize(creds)
-    sheet = client.open_by_key(sheet_id).sheet1 
+    sheet = client.open_by_key(sheet_id).get_worksheet(1) 
     data = sheet.get(range_name)
     return data
 
