@@ -75,7 +75,7 @@ async def command_start_handler(message: Message, command: CommandObject, state:
         except Exception as e:
             await message.answer(f"❌ Ошибка при загрузке данных: {str(e)}", reply_markup = FAIL_KEYBOARD)
     else:
-        await message.answer("👋 Обычный запуск бота.")
+        await message.answer("👋 Добрый день. Запустите бота по уникальной ссылке!\n\nСсылка для тестов: https://t.me/pnhr_test_bot?start=1YANce7tZgLUr4cTFi37zgp6rYHtsXyNAo7Rm5vV373E")
 
     
 @router.callback_query(StateFilter(UserState.welcome))
@@ -329,7 +329,8 @@ async def process_answers(message: Message, state: FSMContext):
     await state.update_data(ans10=ans10)
     text = "Спасибо за прохождение тестирования! \n\n📝В данный момент идет его проверка, и это займет всего 1 минуту ⏳.\n\nПожалуйста, подождите немного, и мы сообщим вам результат.\n\n❗️На другие кнопки пока идет проверка нажимать не нужно.\n\nВаше терпение очень ценится! 🙏"
     await message.answer(f"{text}")
-    
+    user_data = await state.get_data()
+    promt = f"{user_data.get('ans1')},{user_data.get('ans2')},{user_data.get('ans3')},{user_data.get('ans4')},{user_data.get('ans5')},{user_data.get('ans6')},{user_data.get('ans7')},{user_data.get('ans8')},{user_data.get('ans9')},{user_data.get('ans10')}"
 
 
 
@@ -394,7 +395,27 @@ async def process_answers(message: Message, state: FSMContext):
 
 
 
-
+async def get_google_sheet_data(sheet_id: str, range_name: str = "B2:AB2"):
+    scope = ["https://www.googleapis.com/auth/spreadsheets.readonly"]
+    
+    creds = Credentials.from_service_account_info({
+        "type": os.getenv("GS_TYPE"),
+        "project_id": os.getenv("GS_PROJECT_ID"),
+        "private_key_id": os.getenv("GS_PRIVATE_KEY_ID"),
+        "private_key": os.getenv("GS_PRIVATE_KEY").replace('\\n', '\n'),
+        "client_email": os.getenv("GS_CLIENT_EMAIL"),
+        "client_id": os.getenv("GS_CLIENT_ID"),
+        "auth_uri": os.getenv("GS_AUTH_URI"),
+        "token_uri": os.getenv("GS_TOKEN_URI"),
+        "auth_provider_x509_cert_url": os.getenv("GS_AUTH_PROVIDER_X509_CERT_URL"),
+        "client_x509_cert_url": os.getenv("GS_CLIENT_X509_CERT_URL"),
+        "universe_domain": os.getenv("UNIVERSE_DOMAIN")
+    }, scopes=scope)
+    
+    client = gspread.authorize(creds)
+    sheet = client.open_by_key(sheet_id).get_worksheet(1) 
+    data = sheet.get(range_name)
+    return data
 
 ##########################################################################################################################################################################################################
 ##########################################################################################################################################################################################################
