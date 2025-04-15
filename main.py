@@ -330,7 +330,7 @@ async def process_answers(message: Message, state: FSMContext):
     await message.answer(f"{text}")
     user_data = await state.get_data()
     promt = f"{user_data.get('ans1')},{user_data.get('ans2')},{user_data.get('ans3')},{user_data.get('ans4')},{user_data.get('ans5')},{user_data.get('ans6')},{user_data.get('ans7')},{user_data.get('ans8')},{user_data.get('ans9')},{user_data.get('ans10')}"
-
+    await message.answer(f"{promt}")
 
 
 
