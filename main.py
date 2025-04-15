@@ -19,7 +19,6 @@ import shelve
 import gspread
 import re
 from google.oauth2.service_account import Credentials
-from functions import *
 
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 FAIL_KEYBOARD = InlineKeyboardMarkup(inline_keyboard=[
