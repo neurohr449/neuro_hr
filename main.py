@@ -656,30 +656,38 @@ async def check_empty_cells(sheet_id: str) -> InlineKeyboardMarkup | None:
         # Получаем данные из таблицы
         sheet = await asyncio.get_event_loop().run_in_executor(
             None, 
-            lambda: get_google_sheet(sheet_id).range('B2:K21')
-        )
+            lambda: get_google_sheet(sheet_id)
+            )
         
-        # Транспонируем данные (столбцы -> строки)
-        columns = list(zip(*[row for row in sheet]))
+        # Получаем все значения как список списков
+        all_values = await asyncio.get_event_loop().run_in_executor(
+            None,
+            lambda: sheet.get('B2:K21')
+        )
         
         # Получаем заголовки из строки 2 (B2:K2)
         headers = await asyncio.get_event_loop().run_in_executor(
             None,
-            lambda: get_google_sheet(sheet_id).row_values(2)[1:10]  # B2:K2
+            lambda: sheet.row_values(2)[1:10]  # B2:K2
         )
         
         keyboard = []
         
         # Проверяем каждый столбец (B-K)
-        for col_idx, (column, header) in enumerate(zip(columns, headers)):
+        for col_idx in range(len(all_values[0])):  # Для каждого столбца
             col_letter = chr(66 + col_idx)  # B=66, C=67,... K=75
+            column_empty = False
             
-            # Проверяем есть ли пустые ячейки в столбце
-            if any(cell.value == '' for cell in column):
-                # Добавляем кнопку с заголовком столбца
+            # Проверяем ячейки в столбце
+            for row in all_values:
+                if len(row) <= col_idx or row[col_idx] == '':
+                    column_empty = True
+                    break
+            
+            if column_empty and col_idx < len(headers):
                 keyboard.append([
                     InlineKeyboardButton(
-                        text=header,
+                        text=headers[col_idx],
                         callback_data=f"fill_{col_letter}"
                     )
                 ])
@@ -687,7 +695,7 @@ async def check_empty_cells(sheet_id: str) -> InlineKeyboardMarkup | None:
         return InlineKeyboardMarkup(inline_keyboard=keyboard) if keyboard else None
         
     except Exception as e:
-        print(f"Ошибка при загрузке данных: {e}")
+        print(f"Ошибка при проверке пустых ячеек: {e}")
         return None
 
 
