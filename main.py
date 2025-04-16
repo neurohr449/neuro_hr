@@ -87,7 +87,7 @@ async def pd1(callback_query: CallbackQuery, state: FSMContext):
     sheet_id = user_data.get('sheet_id')
     
     try:
-            range_name = "F2:F2"
+            range_name = "G2:G2"
             data = await get_google_sheet_data(sheet_id,range_name)
             value = data[0][0]
             keyboard = InlineKeyboardMarkup(inline_keyboard=[
@@ -104,7 +104,7 @@ async def pd2(callback_query: CallbackQuery, state: FSMContext):
     sheet_id = user_data.get('sheet_id')
     
     try:
-            range_name = "G2:G2"
+            range_name = "H2:H2"
             data = await get_google_sheet_data(sheet_id,range_name)
             value = data[0][0]
             keyboard = InlineKeyboardMarkup(inline_keyboard=[
@@ -121,7 +121,7 @@ async def pd3(callback_query: CallbackQuery, state: FSMContext):
     sheet_id = user_data.get('sheet_id')
     
     try:
-            range_name = "H2:H2"
+            range_name = "I2:I2"
             data = await get_google_sheet_data(sheet_id,range_name)
             value = data[0][0]
             keyboard = InlineKeyboardMarkup(inline_keyboard=[
@@ -138,7 +138,7 @@ async def pd4(callback_query: CallbackQuery, state: FSMContext):
     sheet_id = user_data.get('sheet_id')
     
     try:
-            range_name = "I2:I2"
+            range_name = "J2:J2"
             data = await get_google_sheet_data(sheet_id,range_name)
             value = data[0][0]
             keyboard = InlineKeyboardMarkup(inline_keyboard=[
@@ -155,7 +155,7 @@ async def pd5(callback_query: CallbackQuery, state: FSMContext):
     sheet_id = user_data.get('sheet_id')
     
     try:
-            range_name = "J2:J2"
+            range_name = "K2:K2"
             data = await get_google_sheet_data(sheet_id,range_name)
             value = data[0][0]
             keyboard = InlineKeyboardMarkup(inline_keyboard=[
@@ -173,7 +173,7 @@ async def q1(callback_query: CallbackQuery, state: FSMContext):
     text = "Работа с высоким доходом и крутой командой? Всё просто!\n\n1️⃣Пройдите короткий тест — всего 5-10 минут.\n\n2️⃣Ответьте, пожалуйста на 10 вопросов, своими словами обычным текстом на 1-3 предложения, как понимаете вопрос — без сложных текстов.\n\n3️⃣В конце — запишите кружок в Telegram (30-60 секунд), просто чтобы познакомиться!\n\n4️⃣Запишитесь на собеседование в два клика через чат-бота.🔥Все быстро, просто и без стресса!"
     await callback_query.message.answer(f"{text}")
     try:
-            range_name = "K2:K2"
+            range_name = "L2:L2"
             data = await get_google_sheet_data(sheet_id,range_name)
             value = data[0][0]
             await state.update_data(question_1=value)
@@ -190,7 +190,7 @@ async def q2(message: Message, state: FSMContext):
     sheet_id = user_data.get('sheet_id')
     
     try:
-            range_name = "L2:L2"
+            range_name = "M2:M2"
             data = await get_google_sheet_data(sheet_id,range_name)
             value = data[0][0]
             await state.update_data(question_2=value)
@@ -207,7 +207,7 @@ async def q3(message: Message, state: FSMContext):
     sheet_id = user_data.get('sheet_id')
     
     try:
-            range_name = "M2:M2"
+            range_name = "N2:N2"
             data = await get_google_sheet_data(sheet_id,range_name)
             value = data[0][0]
             await state.update_data(question_3=value)
@@ -224,7 +224,7 @@ async def q4(message: Message, state: FSMContext):
     sheet_id = user_data.get('sheet_id')
     
     try:
-            range_name = "N2:N2"
+            range_name = "O2:O2"
             data = await get_google_sheet_data(sheet_id,range_name)
             value = data[0][0]
             await state.update_data(question_4=value)
@@ -241,7 +241,7 @@ async def q5(message: Message, state: FSMContext):
     sheet_id = user_data.get('sheet_id')
     
     try:
-            range_name = "O2:O2"
+            range_name = "P2:P2"
             data = await get_google_sheet_data(sheet_id,range_name)
             value = data[0][0]
             await state.update_data(question_5=value)
@@ -258,7 +258,7 @@ async def q6(message: Message, state: FSMContext):
     sheet_id = user_data.get('sheet_id')
     
     try:
-            range_name = "P2:P2"
+            range_name = "Q2:Q2"
             data = await get_google_sheet_data(sheet_id,range_name)
             value = data[0][0]
             await state.update_data(question_6=value)
@@ -275,7 +275,7 @@ async def q7(message: Message, state: FSMContext):
     sheet_id = user_data.get('sheet_id')
     
     try:
-            range_name = "Q2:Q2"
+            range_name = "R2:R2"
             data = await get_google_sheet_data(sheet_id,range_name)
             value = data[0][0]
             await state.update_data(question_7=value)
@@ -292,7 +292,7 @@ async def q8(message: Message, state: FSMContext):
     sheet_id = user_data.get('sheet_id')
     
     try:
-            range_name = "R2:R2"
+            range_name = "S2:S2"
             data = await get_google_sheet_data(sheet_id,range_name)
             value = data[0][0]
             await state.update_data(question_8=value)
@@ -309,7 +309,7 @@ async def q9(message: Message, state: FSMContext):
     sheet_id = user_data.get('sheet_id')
     
     try:
-            range_name = "S2:S2"
+            range_name = "T2:T2"
             data = await get_google_sheet_data(sheet_id,range_name)
             value = data[0][0]
             await state.update_data(question_9=value)
@@ -326,7 +326,7 @@ async def q10(message: Message, state: FSMContext):
     sheet_id = user_data.get('sheet_id')
     
     try:
-            range_name = "T2:T2"
+            range_name = "Z2:Z2"
             data = await get_google_sheet_data(sheet_id,range_name)
             value = data[0][0]
             await state.update_data(question_10=value)
@@ -349,7 +349,7 @@ async def process_answers(message: Message, state: FSMContext):
     sheet_id = user_data.get('sheet_id')
     
     try:
-            range_name = "Z2:Z2"
+            range_name = "AA2:AA2"
             data = await get_google_sheet_data(sheet_id,range_name)
             value = data[0][0]
             await state.update_data(portrait=value)
@@ -357,14 +357,14 @@ async def process_answers(message: Message, state: FSMContext):
             await message.answer(f"❌ Ошибка при загрузке данных: {str(e)}")
 
     try:
-            range_name = "AA2:AA2"
+            range_name = "AB2:AB2"
             data = await get_google_sheet_data(sheet_id,range_name)
             value = data[0][0]
             await state.update_data(job_text=value)
     except Exception as e:
             await message.answer(f"❌ Ошибка при загрузке данных: {str(e)}")
     try:
-            range_name = "E2:E2"
+            range_name = "F2:F2"
             data = await get_google_sheet_data(sheet_id,range_name)
             value = data[0][0]
             await state.update_data(job_name=value)
@@ -534,7 +534,7 @@ async def get_google_sheet_data(sheet_id: str, range_name: str = "B2:AB2"):
 
 def get_google_sheet(sheet_id):
     scope = ["https://www.googleapis.com/auth/spreadsheets"]
-    creds = Credentials.from_service_account_file({
+    creds = Credentials.from_service_account_info({
         "type": os.getenv("GS_TYPE"),
         "project_id": os.getenv("GS_PROJECT_ID"),
         "private_key_id": os.getenv("GS_PRIVATE_KEY_ID"),
@@ -592,7 +592,7 @@ async def write_to_google_sheet(
         print(f"Ошибка записи в Google Sheets: {e}")
         return False
 
-from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+
 
 async def check_empty_cells(sheet_id: str) -> InlineKeyboardMarkup | None:
     """
@@ -641,7 +641,7 @@ async def check_empty_cells(sheet_id: str) -> InlineKeyboardMarkup | None:
         return None
 
 
-from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+
 
 async def get_available_times(sheet_id: str, selected_date_cell: str) -> InlineKeyboardMarkup | None:
     """
