@@ -479,7 +479,7 @@ async def process_time_selection(callback: CallbackQuery, state: FSMContext):
         # 1. Проверяем, не занято ли время
         sheet = await asyncio.get_event_loop().run_in_executor(
             None, 
-            lambda: get_google_sheet(sheet_id)
+            lambda: get_google_sheet(sheet_id, 0)
         )
         
         target_cell = f"{column_letter}{row_number}"
@@ -582,7 +582,7 @@ async def get_google_sheet_data(sheet_id: str, range_name: str = "B2:AB2"):
     return data
 
 
-def get_google_sheet(sheet_id):
+def get_google_sheet(sheet_id, list_index):
     scope = ["https://www.googleapis.com/auth/spreadsheets"]
     creds = Credentials.from_service_account_info({
         "type": os.getenv("GS_TYPE"),
@@ -598,7 +598,9 @@ def get_google_sheet(sheet_id):
         "universe_domain": os.getenv("UNIVERSE_DOMAIN")
     }, scopes=scope)
     client = gspread.authorize(creds)
-    return client.open_by_key(sheet_id).get_worksheet(2) 
+    return client.open_by_key(sheet_id).get_worksheet(list_index) 
+
+
 
 async def write_to_google_sheet(
     sheet_id: str,
@@ -634,7 +636,7 @@ async def write_to_google_sheet(
         
         # Асинхронная запись
         loop = asyncio.get_event_loop()
-        sheet = await loop.run_in_executor(None, get_google_sheet, sheet_id)
+        sheet = await loop.run_in_executor(None, get_google_sheet, sheet_id, 2)
         await loop.run_in_executor(None, sheet.append_row, row_data)
         
         return True
@@ -653,7 +655,7 @@ async def check_empty_cells(sheet_id: str) -> InlineKeyboardMarkup | None:
         # Получаем объект таблицы
         sheet = await asyncio.get_event_loop().run_in_executor(
             None, 
-            lambda: get_google_sheet(sheet_id)
+            lambda: get_google_sheet(sheet_id, 0)
         )
         
         # 1. Получаем заголовки (даты из строки 2)
@@ -721,7 +723,7 @@ async def get_available_times(sheet_id: str, selected_date_cell: str) -> InlineK
         date_range = f"{column_letter}4:{column_letter}21"
         
         # Получаем данные из таблицы
-        sheet = get_google_sheet(sheet_id)
+        sheet = get_google_sheet(sheet_id, 0)
         
         # Читаем данные асинхронно
         loop = asyncio.get_event_loop()
