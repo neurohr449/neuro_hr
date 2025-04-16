@@ -646,56 +646,59 @@ async def write_to_google_sheet(
 
 async def check_empty_cells(sheet_id: str) -> InlineKeyboardMarkup | None:
     """
-    Проверяет наличие пустых ячеек в столбцах B-K (диапазон B2:K21)
+    Проверяет наличие пустых ячеек в столбцах дат (B2:K2 - даты, B4:K21 - данные)
     и создает кнопки для столбцов с пустыми ячейками
-    
-    :param sheet_id: ID Google-таблицы
-    :return: InlineKeyboardMarkup или None, если нет пустых ячеек
     """
     try:
-        # Получаем данные из таблицы
+        # Получаем объект таблицы
         sheet = await asyncio.get_event_loop().run_in_executor(
             None, 
             lambda: get_google_sheet(sheet_id)
-            )
-        
-        # Получаем все значения как список списков
-        all_values = await asyncio.get_event_loop().run_in_executor(
-            None,
-            lambda: sheet.get('B2:K21')
         )
         
-        # Получаем заголовки из строки 2 (B2:K2)
-        headers = await asyncio.get_event_loop().run_in_executor(
+        # 1. Получаем заголовки (даты из строки 2)
+        dates = await asyncio.get_event_loop().run_in_executor(
             None,
-            lambda: sheet.row_values(2)[1:10]  # B2:K2
+            lambda: sheet.row_values(2)[1:11]  # B2:K2
         )
+        
+        # 2. Получаем данные (B4:K21)
+        data = await asyncio.get_event_loop().run_in_executor(
+            None,
+            lambda: sheet.get('B4:K21')
+        )
+        
+        print(f"Заголовки дат: {dates}")  # Отладочный вывод
+        print(f"Получено строк данных: {len(data)}")  # Отладочный вывод
         
         keyboard = []
         
         # Проверяем каждый столбец (B-K)
-        for col_idx in range(len(all_values[0])):  # Для каждого столбца
+        for col_idx in range(len(dates)):
             col_letter = chr(66 + col_idx)  # B=66, C=67,... K=75
-            column_empty = False
+            has_empty = False
             
-            # Проверяем ячейки в столбце
-            for row in all_values:
-                if len(row) <= col_idx or row[col_idx] == '':
-                    column_empty = True
+            # Проверяем ячейки в столбце (18 строк)
+            for row_idx in range(min(len(data), 18)):  # Защита от выхода за границы
+                if len(data[row_idx]) <= col_idx or data[row_idx][col_idx] == '':
+                    has_empty = True
                     break
             
-            if column_empty and col_idx < len(headers):
+            if has_empty:
+                date = dates[col_idx] if col_idx < len(dates) else f"Столбец {col_letter}"
                 keyboard.append([
                     InlineKeyboardButton(
-                        text=headers[col_idx],
-                        callback_data=f"fill_{col_letter}"
+                        text=date,
+                        callback_data=f"select_date_{col_letter}2"  # Например "B2"
                     )
                 ])
+                print(f"Добавлена кнопка для {col_letter}")  # Отладочный вывод
         
+        print(f"Создано кнопок: {len(keyboard)}")  # Отладочный вывод
         return InlineKeyboardMarkup(inline_keyboard=keyboard) if keyboard else None
         
     except Exception as e:
-        print(f"Ошибка при проверке пустых ячеек: {e}")
+        print(f"Ошибка в check_empty_cells: {str(e)}", exc_info=True)
         return None
 
 
