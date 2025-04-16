@@ -326,7 +326,7 @@ async def q10(message: Message, state: FSMContext):
     sheet_id = user_data.get('sheet_id')
     
     try:
-            range_name = "Z2:Z2"
+            range_name = "U2:U2"
             data = await get_google_sheet_data(sheet_id,range_name)
             value = data[0][0]
             await state.update_data(question_10=value)
@@ -462,22 +462,71 @@ async def process_date_selection(callback: CallbackQuery, state: FSMContext):
 
 @router.callback_query(lambda c: c.data.startswith("select_time_"), UserState.slot_time)
 async def process_time_selection(callback: CallbackQuery, state: FSMContext):
-    # Пример callback_data: "select_time_B_5" (столбец B, строка 5)
-    parts = callback.data.split("_")
-    column_letter = parts[2]
-    row_number = parts[3]
-    
-    # Сохраняем выбранный слот в состоянии
-    await state.update_data({
-        'selected_column': column_letter,
-        'selected_row': row_number
-    })
-    
-    await callback.message.answer(
-        f"Вы выбрали время в ячейке {column_letter}{row_number}\n"
-        "Введите ваши данные для записи:"
-    )
-    await callback.answer()
+    try:
+        parts = callback.data.split("_")
+        column_letter = parts[2]  # Буква столбца (B, C и т.д.)
+        row_number = parts[3]     # Номер строки (5, 6 и т.д.)
+        
+        # Получаем данные из состояния
+        user_data = await state.get_data()
+        sheet_id = user_data.get('sheet_id')
+        
+        if not sheet_id:
+            await callback.answer("❌ Ошибка: ID таблицы не найден", show_alert=True)
+            return
+
+        # 1. Проверяем, не занято ли время
+        sheet = await asyncio.get_event_loop().run_in_executor(
+            None, 
+            lambda: get_google_sheet(sheet_id)
+        )
+        
+        target_cell = f"{column_letter}{row_number}"
+        current_value = await asyncio.get_event_loop().run_in_executor(
+            None,
+            lambda: sheet.acell(target_cell).value
+        )
+        
+        if current_value and current_value.strip():
+            await callback.answer(
+                "⏳ Это время уже занято, выберите другое", 
+                show_alert=True
+            )
+            return
+
+        # 2. Подготавливаем данные для записи
+        fio = user_data.get('fio', 'Не указано')
+        phone = user_data.get('phone', 'Не указано')
+        record_text = f"{fio} | @{callback.from_user.username} | {phone}"
+        
+        # 3. Записываем данные
+        await asyncio.get_event_loop().run_in_executor(
+            None,
+            lambda: sheet.update_acell(target_cell, record_text)
+        )
+        
+        # 4. Обновляем статус в основной таблице
+        await write_to_google_sheet(
+            sheet_id=sheet_id,
+            username=callback.from_user.username,
+            first_name=callback.from_user.first_name,
+            status="Записан на собеседование",
+            gpt_response=f"Запись: {target_cell} - {record_text}"
+        )
+        
+        # 5. Уведомляем пользователя
+        await callback.message.edit_text(
+            f"✅ Вы успешно записаны на:\n"
+            f"Дата: {user_data.get('selected_date', 'Не указана')}\n"
+            f"Время: {sheet.acell(f'A{row_number}').value}\n"
+            f"Контакт: {phone}"
+        )
+        
+        await state.clear()
+        
+    except Exception as e:
+        logging.error(f"Time selection error: {e}")
+        await callback.answer("⚠️ Ошибка записи, попробуйте позже", show_alert=True)
 
 
 
