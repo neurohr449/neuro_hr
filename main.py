@@ -476,37 +476,47 @@ async def process_time_selection(callback: CallbackQuery, state: FSMContext):
             await callback.answer("❌ Ошибка: ID таблицы не найден", show_alert=True)
             return
 
-        # 1. Проверяем, не занято ли время
+        # 1. Получаем лист с расписанием
         sheet = await asyncio.get_event_loop().run_in_executor(
             None, 
-            lambda: get_google_sheet(sheet_id, 0)
+            lambda: get_google_sheet(sheet_id, 0)  # Убедитесь, что это правильный индекс листа
         )
         
         target_cell = f"{column_letter}{row_number}"
+        
+        # 2. Улучшенная проверка занятости
         current_value = await asyncio.get_event_loop().run_in_executor(
             None,
-            lambda: sheet.acell(target_cell).value
+            lambda: sheet.acell(target_cell, value_render_option='UNFORMATTED_VALUE').value
         )
         
-        if current_value and current_value.strip():
+        # Отладочный вывод
+        print(f"Проверяем ячейку {target_cell}: '{current_value}' (тип: {type(current_value)})")
+        
+        # 3. Проверяем занятость (учитываем None, пустую строку и пробелы)
+        if current_value is not None and str(current_value).strip():
             await callback.answer(
                 "⏳ Это время уже занято, выберите другое", 
                 show_alert=True
             )
             return
 
-        # 2. Подготавливаем данные для записи
+        # 4. Подготавливаем данные для записи
         fio = user_data.get('fio', 'Не указано')
         phone = user_data.get('phone', 'Не указано')
         record_text = f"{fio} | @{callback.from_user.username} | {phone}"
         
-        # 3. Записываем данные
+        # 5. Записываем данные с проверкой
         await asyncio.get_event_loop().run_in_executor(
             None,
-            lambda: sheet.update_acell(target_cell, record_text)
+            lambda: sheet.update(
+                target_cell,
+                [[record_text]],
+                value_input_option='USER_ENTERED'
+            )
         )
         
-        # 4. Обновляем статус в основной таблице
+        # 6. Обновляем статус
         await write_to_google_sheet(
             sheet_id=sheet_id,
             username=callback.from_user.username,
@@ -515,19 +525,25 @@ async def process_time_selection(callback: CallbackQuery, state: FSMContext):
             gpt_response=f"Запись: {target_cell} - {record_text}"
         )
         
-        # 5. Уведомляем пользователя
+        # 7. Подтверждаем запись
+        time_slot = await asyncio.get_event_loop().run_in_executor(
+            None,
+            lambda: sheet.acell(f'A{row_number}').value
+        )
+        
         await callback.message.edit_text(
-            f"✅ Вы успешно записаны на:\n"
-            f"Дата: {user_data.get('selected_date', 'Не указана')}\n"
-            f"Время: {sheet.acell(f'A{row_number}').value}\n"
-            f"Контакт: {phone}"
+            f"✅ Запись подтверждена\n"
+            f"📅 Дата: {user_data.get('selected_date', 'Не указана')}\n"
+            f"⏰ Время: {time_slot}\n"
+            f"📱 Контакт: {phone}\n\n"
+            f"Мы свяжемся с вами для подтверждения."
         )
         
         await state.clear()
         
     except Exception as e:
-        logging.error(f"Time selection error: {e}")
-        await callback.answer("⚠️ Ошибка записи, попробуйте позже", show_alert=True)
+        logging.error(f"Ошибка записи времени: {str(e)}", exc_info=True)
+        await callback.answer("⚠️ Произошла ошибка, попробуйте позже", show_alert=True)
 
 
 
