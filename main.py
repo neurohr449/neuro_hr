@@ -88,21 +88,25 @@ async def pd1(callback_query: CallbackQuery, state: FSMContext):
     sheet_id = user_data.get('sheet_id')
     
     try:
-            username = callback_query.from_user
-            first_name = username.first_name
-            await write_to_google_sheet(
+            user = callback_query.from_user
+            username = f"@{user.username}"
+            first_name = user.first_name
+            user_check = await write_to_google_sheet(
                                 sheet_id = sheet_id, 
                                 username = username,
                                 first_name = first_name
-            )
-            await get_job_data(sheet_id, state)
-            user_data = await state.get_data()
-            keyboard = InlineKeyboardMarkup(inline_keyboard=[
-            [InlineKeyboardButton(text="Продолжить", callback_data="next")]
-            ])
-            await callback_query.message.answer(f"{user_data.get('pd1')}", reply_markup = keyboard)
-            await state.set_state(UserState.pd1)
-            await callback_query.answer()
+                         )
+            if user_check != False:
+                await get_job_data(sheet_id, state)
+                user_data = await state.get_data()
+                keyboard = InlineKeyboardMarkup(inline_keyboard=[
+                [InlineKeyboardButton(text="Продолжить", callback_data="next")]
+                ])
+                await callback_query.message.answer(f"{user_data.get('pd1')}", reply_markup = keyboard)
+                await state.set_state(UserState.pd1)
+                await callback_query.answer()
+            else:
+                 await callback_query.message.answer("Вы уже получили отказ или произощла ошибка", reply_markup = FAIL_KEYBOARD)
     except Exception as e:
             await callback_query.message.answer(f"❌ Ошибка при загрузке данных: {str(e)}", reply_markup = FAIL_KEYBOARD)
 
