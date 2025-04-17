@@ -98,39 +98,141 @@ async def get_google_sheet(sheet_id, list_index):
 async def write_to_google_sheet(
     sheet_id: str,
     username: str,
-    first_name: str,
-    status: str,
-    gpt_response: str
+    first_name: str = None,
+    status: str = None,
+    gpt_response: str = None,
+    full_name: str = None,
+    phone_number: str = None,
+    resume_link: str = None,
+    interview_date: str = None,
+    interview_time: str = None,
+    qa_data: str = None
 ) -> bool:
     """
-    Записывает данные в Google Sheets
+    Записывает или обновляет данные в Google Sheets
     
     :param sheet_id: ID таблицы
-    :param username: @username пользователя
+    :param username: @username пользователя (обязательный параметр)
     :param first_name: Имя пользователя
     :param status: Один из вариантов: 'Начал чат-бота', 'Собеседование', 'Отказ'
     :param gpt_response: Ответ от GPT
+    :param full_name: ФИО пользователя
+    :param phone_number: Номер телефона
+    :param resume_link: Ссылка на резюме
+    :param interview_date: Дата собеседования
+    :param interview_time: Время собеседования
+    :param qa_data: Вопросы и ответы пользователя
     :return: True если запись успешна, False при ошибке
     """
     try:
-        # Получаем текущую дату
         tz = ZoneInfo('Europe/Moscow')
-        current_date = datetime.now(tz).strftime("%Y-%m-%d %H:%M:%S")
+        now = datetime.now(tz)
+        current_date = now.strftime("%Y-%m-%d %H:%M:%S")
+        current_day = now.strftime("%d")
+        current_month = now.strftime("%m")
+        current_year = now.strftime("%Y")
         
-        # Подготовка данных для записи
-        row_data = [
-            current_date,          # Столбец A (дата)
-            f"@{username}",        # Столбец B (@ник)
-            first_name,            # Столбец C (имя)
-            status,                # Столбец D (статус)
-            "", "", "", "", "",    # Пустые столбцы E-J
-            gpt_response          # Столбец K (ответ GPT)
-        ]
-        
-        # Асинхронная запись
+        # Получаем данные из таблицы
         loop = asyncio.get_event_loop()
         sheet = await loop.run_in_executor(None, get_google_sheet, sheet_id, 2)
-        await loop.run_in_executor(None, sheet.append_row, row_data)
+        data = await loop.run_in_executor(None, sheet.get_all_records)
+        
+        # Проверяем, есть ли пользователь уже в таблице
+        user_row = None
+        for i, row in enumerate(data, start=2):  # начинаем с 2, так как первая строка - заголовки
+            if f"@{username}".lower() == row.get('Ник Телеграм', '').lower():
+                user_row = i
+                break
+        
+        # Если пользователь найден и его статус "Отказ" - возвращаем False
+        if user_row and status != "Отказ":
+            existing_status = data[user_row-2].get('Статус', '')
+            if existing_status == "Отказ":
+                return False
+        
+        # Подготовка данных для обновления/добавления
+        update_data = {}
+        
+        # Обязательные поля для новой записи
+        if not user_row:
+            update_data = {
+                'Дата текущая': current_date,
+                'Ник Телеграм': f"@{username}",
+                'Имя в телеграм': first_name or "",
+                'Статус': status or "Начал чат-бота",
+                'Текущий день': current_day,
+                'Текущий Месяц': current_month,
+                'Текущий Год': current_year
+            }
+        
+        # Обновляемые поля для существующей записи
+        if first_name is not None:
+            update_data['Имя в телеграм'] = first_name
+        if status is not None:
+            update_data['Статус'] = status
+        if gpt_response is not None:
+            update_data['Комментарий нейросети'] = gpt_response
+        if full_name is not None:
+            update_data['ФИО'] = full_name
+        if phone_number is not None:
+            update_data['Номер телефона'] = phone_number
+        if resume_link is not None:
+            update_data['Ссылка на резюме'] = resume_link
+        if interview_date is not None:
+            update_data['Дата собеседования'] = interview_date
+        if interview_time is not None:
+            update_data['Время собеседования'] = interview_time
+        if qa_data is not None:
+            update_data['Вопросы и ответы пользователя'] = qa_data
+        
+        # Если пользователь существует - обновляем строку, иначе добавляем новую
+        if user_row:
+            # Получаем текущие значения, чтобы не перезаписать пустыми значениями
+            current_values = data[user_row-2]
+            for key in update_data:
+                if update_data[key] or key in ['Статус', 'Имя в телеграм']:  # Разрешаем пустые значения только для определенных полей
+                    current_values[key] = update_data[key]
+            
+            # Формируем список значений для обновления
+            row_values = [
+                current_values.get('Дата текущая', ''),
+                current_values.get('Ник Телеграм', ''),
+                current_values.get('Имя в телеграм', ''),
+                current_values.get('Статус', ''),
+                '',  # Столбец E (пустой)
+                current_values.get('ФИО', ''),
+                current_values.get('Номер телефона', ''),
+                current_values.get('Ссылка на резюме', ''),
+                current_values.get('Дата собеседования', ''),
+                current_values.get('Время собеседования', ''),
+                current_values.get('Комментарий нейросети', ''),
+                current_values.get('Вопросы и ответы пользователя', ''),
+                current_values.get('Текущий день', ''),
+                current_values.get('Текущий Месяц', ''),
+                current_values.get('Текущий Год', '')
+            ]
+            
+            await loop.run_in_executor(None, sheet.update, f'A{user_row}:O{user_row}', [row_values])
+        else:
+            # Формируем новую строку
+            new_row = [
+                current_date,
+                f"@{username}",
+                first_name or "",
+                status or "Начал чат-бота",
+                "",  # Столбец E (пустой)
+                full_name or "",
+                phone_number or "",
+                resume_link or "",
+                interview_date or "",
+                interview_time or "",
+                gpt_response or "",
+                qa_data or "",
+                current_day,
+                current_month,
+                current_year
+            ]
+            await loop.run_in_executor(None, sheet.append_row, new_row)
         
         return True
     except Exception as e:

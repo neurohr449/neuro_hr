@@ -88,6 +88,13 @@ async def pd1(callback_query: CallbackQuery, state: FSMContext):
     sheet_id = user_data.get('sheet_id')
     
     try:
+            username = callback_query.from_user
+            first_name = username.first_name
+            await write_to_google_sheet(
+                                sheet_id = sheet_id, 
+                                username = username,
+                                first_name = first_name
+            )
             await get_job_data(sheet_id, state)
             user_data = await state.get_data()
             keyboard = InlineKeyboardMarkup(inline_keyboard=[
@@ -237,29 +244,38 @@ async def process_answers(message: Message, state: FSMContext):
     text = "Спасибо за прохождение тестирования! \n\n📝В данный момент идет его проверка, и это займет всего 1 минуту ⏳.\n\nПожалуйста, подождите немного, и мы сообщим вам результат.\n\n❗️На другие кнопки пока идет проверка нажимать не нужно.\n\nВаше терпение очень ценится! 🙏"
     await message.answer(f"{text}")
     user_data = await state.get_data()
-    
+    sheet_id = user_data.get('sheet_id')
 
     promt = f"Ты HR менеджер с опытом более 30 лет в найме, поиске и обучении персонала, с учетом всего своего опыта, чтобы в будущем подобрать идеального кандидата для нашей вакансии: {user_data.get('job_name')}, тебе надо принять решение, пригласить кандидата на собеседование или отказать. Не нужно давать комментарий, нужно только решение, одно слово \"Собеседование\" или \"Отказ\". Для принятия решения сравни текст вакансии {user_data.get('job_text')}, портрет кандидата {user_data.get('portrait')} и вопросы и ответы пользователя который надо оценить и написать. Вопрос 1: {user_data.get('q1')}, ответ: {user_data.get('ans1')}; Вопрос 2: {user_data.get('q2')}, ответ: {user_data.get('ans2')}; Вопрос 3: {user_data.get('q3')}, ответ: {user_data.get('ans3')}; Вопрос 4: {user_data.get('q4')}, ответ: {user_data.get('ans4')}; Вопрос 5: {user_data.get('q5')}, ответ: {user_data.get('ans5')}; Вопрос 6: {user_data.get('q6')}, ответ: {user_data.get('ans6')}; Вопрос 7:{user_data.get('q7')}, ответ: {user_data.get('ans7')}; Вопрос 8: {user_data.get('q8')}, ответ: {user_data.get('ans8')}; Вопрос 9: {user_data.get('q9')}, ответ: {user_data.get('ans9')}; Вопрос 10:{user_data.get('q10')}, ответ: {user_data.get('ans10')}"
     promt_2 = f"Ты HR менеджер с опытом более 30 лет в найме, поиске и обучении персонала, с учетом всего своего опыта, чтобы в будущем подобрать идеального кандидата для нашей вакансии: {user_data.get('job_name')}, тебе надо оценить кандидата, сравнить его с вакансией и написать комментарии что ты считаешь по нему. Вот вопросы и ответы пользователя который надо оценить и написать свои комментарии по кандидату строго до 1000 символов: Вопрос 1: {user_data.get('q1')}, ответ: {user_data.get('ans1')}; Вопрос 2: {user_data.get('q2')}, ответ: {user_data.get('ans2')}; Вопрос 3: {user_data.get('q3')}, ответ: {user_data.get('ans3')}; Вопрос 4: {user_data.get('q4')}, ответ: {user_data.get('ans4')}; Вопрос 5: {user_data.get('q5')}, ответ: {user_data.get('ans5')}; Вопрос 6: {user_data.get('q6')}, ответ: {user_data.get('ans6')}; Вопрос 7:{user_data.get('q7')}, ответ: {user_data.get('ans7')}; Вопрос 8: {user_data.get('q8')}, ответ: {user_data.get('ans8')}; Вопрос 9: {user_data.get('q9')}, ответ: {user_data.get('ans9')}; Вопрос 10:{user_data.get('q10')}, ответ: {user_data.get('ans10')} Вот текст вакансии для анализа {user_data.get('job_text')} и портрет кандидата {user_data.get('portrait')}"
-    
-    print (f"{promt}")
-
-    print (f"{promt_2}")
-    
     response = await get_chatgpt_response(promt)
     response_2 = await get_chatgpt_response(promt_2)
     
     await message.answer(f"{response}\n\n {response_2}")
     if response == "Собеседование":
         await state.set_state(UserState.result_yes)
+        await write_to_google_sheet(
+             sheet_id = sheet_id, 
+             username = message.from_user.username,
+             first_name=message.from_user.first_name,
+             status=response,
+             gpt_response=response_2
+             )
+        if success:
+            await message.answer("✅ Данные сохранены!")
+        else:
+            await message.answer("⚠️ Ошибка сохранения данных")
         await message.answer("Ты молодец! 🎉 Ты прошел тестирование, а теперь можешь записаться на собеседование. Просто следуй инструкциям чат-бота: ответь на пару вопросов и выбери удобную дату и время для собеседования. 🚀")
         await message.answer("Пожалуйста напишите ваше ФИО.")
+    
+    
+    
     elif response == "Отказ":
           await state.set_state(UserState.result_no)
           await message.answer("К сожалению вы не проходите на следующий этап")
           # Записываем в таблицу
           success = await write_to_google_sheet(
-          sheet_id=user_data['sheet_id'],
+          sheet_id=sheet_id,
           username=message.from_user.username,
           first_name=message.from_user.first_name,
           status=response,  
