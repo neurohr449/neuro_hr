@@ -95,6 +95,7 @@ async def pd1(callback_query: CallbackQuery, state: FSMContext):
             ])
             await callback_query.message.answer(f"{user_data.get('pd1')}", reply_markup = keyboard)
             await state.set_state(UserState.pd1)
+            await callback_query.answer()
     except Exception as e:
             await callback_query.message.answer(f"❌ Ошибка при загрузке данных: {str(e)}", reply_markup = FAIL_KEYBOARD)
 
@@ -106,6 +107,7 @@ async def pd2(callback_query: CallbackQuery, state: FSMContext):
     ])
     await callback_query.message.answer(f"{user_data.get('pd2')}", reply_markup = keyboard)
     await state.set_state(UserState.pd2)
+    await callback_query.answer()
 
 @router.callback_query(StateFilter(UserState.pd2))
 async def pd3(callback_query: CallbackQuery, state: FSMContext):
@@ -115,6 +117,7 @@ async def pd3(callback_query: CallbackQuery, state: FSMContext):
     ])
     await callback_query.message.answer(f"{user_data.get('pd3')}", reply_markup = keyboard)
     await state.set_state(UserState.pd3)
+    await callback_query.answer()
 
 @router.callback_query(StateFilter(UserState.pd3))
 async def pd4(callback_query: CallbackQuery, state: FSMContext):
@@ -124,6 +127,7 @@ async def pd4(callback_query: CallbackQuery, state: FSMContext):
     ])
     await callback_query.message.answer(f"{user_data.get('pd4')}", reply_markup = keyboard)
     await state.set_state(UserState.pd4)
+    await callback_query.answer()
 
 @router.callback_query(StateFilter(UserState.pd4))
 async def pd5(callback_query: CallbackQuery, state: FSMContext):
@@ -133,6 +137,7 @@ async def pd5(callback_query: CallbackQuery, state: FSMContext):
     ])
     await callback_query.message.answer(f"{user_data.get('pd5')}", reply_markup = keyboard)
     await state.set_state(UserState.pd5)
+    await callback_query.answer()
 
 
 
