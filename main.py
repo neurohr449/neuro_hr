@@ -89,11 +89,11 @@ async def pd1(callback_query: CallbackQuery, state: FSMContext):
     
     try:
             await get_job_data(sheet_id, state)
-            text = user_data.get('pd1')
+            user_data = await state.get_data()
             keyboard = InlineKeyboardMarkup(inline_keyboard=[
             [InlineKeyboardButton(text="Продолжить", callback_data="next")]
             ])
-            await callback_query.message.answer(f"{text}", reply_markup = keyboard)
+            await callback_query.message.answer(f"{user_data.get('pd1')}", reply_markup = keyboard)
             await state.set_state(UserState.pd1)
     except Exception as e:
             await callback_query.message.answer(f"❌ Ошибка при загрузке данных: {str(e)}", reply_markup = FAIL_KEYBOARD)
