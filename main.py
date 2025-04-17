@@ -88,13 +88,11 @@ async def pd1(callback_query: CallbackQuery, state: FSMContext):
     sheet_id = user_data.get('sheet_id')
     
     try:
-            range_name = "G2:G2"
-            data = await get_google_sheet_data(sheet_id,range_name)
-            value = data[0][0]
+            await get_job_data(sheet_id)
             keyboard = InlineKeyboardMarkup(inline_keyboard=[
             [InlineKeyboardButton(text="Продолжить", callback_data="next")]
             ])
-            await callback_query.message.answer(f"{value}", reply_markup = keyboard)
+            await callback_query.message.answer(f"{user_data.get('pd1')}", reply_markup = keyboard)
             await state.set_state(UserState.pd1)
     except Exception as e:
             await callback_query.message.answer(f"❌ Ошибка при загрузке данных: {str(e)}", reply_markup = FAIL_KEYBOARD)
@@ -102,19 +100,11 @@ async def pd1(callback_query: CallbackQuery, state: FSMContext):
 @router.callback_query(StateFilter(UserState.pd1))
 async def pd2(callback_query: CallbackQuery, state: FSMContext):
     user_data = await state.get_data()
-    sheet_id = user_data.get('sheet_id')
-    
-    try:
-            range_name = "H2:H2"
-            data = await get_google_sheet_data(sheet_id,range_name)
-            value = data[0][0]
-            keyboard = InlineKeyboardMarkup(inline_keyboard=[
-            [InlineKeyboardButton(text="Продолжить", callback_data="next")]
-            ])
-            await callback_query.message.answer(f"{value}", reply_markup = keyboard)
-            await state.set_state(UserState.pd2)
-    except Exception as e:
-            await callback_query.message.answer(f"❌ Ошибка при загрузке данных: {str(e)}", reply_markup = FAIL_KEYBOARD)
+    keyboard = InlineKeyboardMarkup(inline_keyboard=[
+    [InlineKeyboardButton(text="Продолжить", callback_data="next")]
+    ])
+    await callback_query.message.answer(f"{user_data.get('pd2')}", reply_markup = keyboard)
+    await state.set_state(UserState.pd2)
 
 @router.callback_query(StateFilter(UserState.pd2))
 async def pd3(callback_query: CallbackQuery, state: FSMContext):

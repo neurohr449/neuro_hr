@@ -245,3 +245,28 @@ async def get_available_times(sheet_id: str, selected_date_cell: str) -> InlineK
 
 
 
+async def get_job_data(state: FSMContext, sheet_id):
+    range_name = "A2:AD2"
+    value = await get_google_sheet_data(sheet_id, range_name)
+    row_data = value[0]
+    await state.update_data(
+        pd1=row_data[6],
+        pd2=row_data[7],
+        pd3=row_data[8],
+        pd4=row_data[9],
+        pd5=row_data[10],
+        q1=row_data[11],
+        q2=row_data[12],
+        q3=row_data[13],
+        q4=row_data[14],
+        q5=row_data[15],
+        q6=row_data[16],
+        q7=row_data[17],
+        q8=row_data[18],
+        q9=row_data[19],
+        q10=row_data[20],
+        portrait=row_data[26],
+        job_text=row_data[27],
+        job_name=row_data[5]
+        )
+    
