@@ -88,7 +88,7 @@ async def pd1(callback_query: CallbackQuery, state: FSMContext):
     sheet_id = user_data.get('sheet_id')
     
     try:
-            await get_job_data(sheet_id)
+            await get_job_data(sheet_id, state)
             keyboard = InlineKeyboardMarkup(inline_keyboard=[
             [InlineKeyboardButton(text="Продолжить", callback_data="next")]
             ])
