@@ -80,20 +80,16 @@ async def get_google_sheet(sheet_id: str, list_index: int):
         "universe_domain": os.getenv("UNIVERSE_DOMAIN")
     }, scopes=scope)
     
-    # Асинхронная авторизация
     try:
+        # Асинхронная авторизация
         client = await asyncio.to_thread(gspread.authorize, creds)
-    except Exception as e:
-        print(f"Ошибка авторизации в Google Sheets: {e}")
-        raise
-    
-    # Асинхронное открытие таблицы и листа
-    try:
+        
+        # Асинхронное открытие таблицы и листа
         spreadsheet = await asyncio.to_thread(client.open_by_key, sheet_id)
         worksheet = await asyncio.to_thread(spreadsheet.get_worksheet, list_index)
         return worksheet
     except Exception as e:
-        print(f"Ошибка доступа к таблице Google Sheets: {e}")
+        print(f"Ошибка доступа к Google Sheets: {e}")
         raise
 
 
@@ -138,10 +134,9 @@ async def write_to_google_sheet(
         current_month = now.strftime("%m")
         current_year = now.strftime("%Y")
         
-        # Получаем данные из таблицы
-        loop = asyncio.get_event_loop()
-        sheet = await loop.run_in_executor(None, get_google_sheet, sheet_id, 2)
-        data = await loop.run_in_executor(None, sheet.get_all_records)
+        # Получаем данные из таблицы (асинхронно)
+        sheet = await get_google_sheet(sheet_id, 2)
+        data = await asyncio.to_thread(sheet.get_all_records)
         
         # Проверяем, есть ли пользователь уже в таблице
         user_row = None
@@ -218,7 +213,7 @@ async def write_to_google_sheet(
                 current_values.get('Текущий Год', '')
             ]
             
-            await loop.run_in_executor(None, sheet.update, f'A{user_row}:O{user_row}', [row_values])
+            await asyncio.to_thread(sheet.update, f'A{user_row}:O{user_row}', [row_values])
         else:
             # Формируем новую строку
             new_row = [
@@ -238,12 +233,14 @@ async def write_to_google_sheet(
                 current_month,
                 current_year
             ]
-            await loop.run_in_executor(None, sheet.append_row, new_row)
+            await asyncio.to_thread(sheet.append_row, new_row)
         
         return True
     except Exception as e:
         print(f"Ошибка записи в Google Sheets: {e}")
         return False
+
+
 
 
 
