@@ -89,7 +89,7 @@ async def pd1(callback_query: CallbackQuery, state: FSMContext):
     
     try:
             user = callback_query.from_user
-            username = f"@{user.username}"
+            username = user.username
             first_name = user.first_name
             user_check = await write_to_google_sheet(
                                 sheet_id = sheet_id, 
