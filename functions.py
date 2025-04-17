@@ -141,7 +141,7 @@ async def write_to_google_sheet(
         # Проверяем, есть ли пользователь уже в таблице
         user_row = None
         for i, row in enumerate(data, start=2):  # начинаем с 2, так как первая строка - заголовки
-            if f"@{username}".lower() == row.get('Ник Телеграм', '').lower():
+            if f"@{username}".lower() == row.get('ТГ', '').lower():
                 user_row = i
                 break
         
