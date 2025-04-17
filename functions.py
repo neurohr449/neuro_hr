@@ -207,31 +207,40 @@ async def get_available_times(sheet_id: str, selected_date_cell: str) -> InlineK
         time_range = f"A4:A21"
         date_range = f"{column_letter}4:{column_letter}21"
         
-        # Получаем данные из таблицы
-        sheet = get_google_sheet(sheet_id, 0)
+        # Получаем объект листа (await, так как функция асинхронная)
+        sheet = await get_google_sheet(sheet_id, 0)
         
         # Читаем данные асинхронно
         loop = asyncio.get_event_loop()
-        time_values = await loop.run_in_executor(None, lambda: sheet.range(time_range))
-        date_values = await loop.run_in_executor(None, lambda: sheet.range(date_range))
+        time_values = await loop.run_in_executor(
+            None, 
+            lambda: sheet.get(time_range)
+        )
+        date_values = await loop.run_in_executor(
+            None, 
+            lambda: sheet.get(date_range)
+        )
         
         # Создаем клавиатуру с доступным временем
         keyboard = []
         
-        for time_cell, date_cell in zip(time_values, date_values):
-            # Если ячейка времени не пустая и ячейка даты пустая
-            if time_cell.value and not date_cell.value:
+        for i in range(len(time_values)):
+            time_value = time_values[i][0] if i < len(time_values) and len(time_values[i]) > 0 else None
+            date_value = date_values[i][0] if i < len(date_values) and len(date_values[i]) > 0 else None
+            
+            # Если есть время и нет записи в дате
+            if time_value and not date_value:
                 keyboard.append([
                     InlineKeyboardButton(
-                        text=time_cell.value,
-                        callback_data=f"select_time_{column_letter}_{time_cell.row}"
+                        text=time_value,
+                        callback_data=f"select_time_{column_letter}_{i+4}"  # i+4 соответствует реальной строке
                     )
                 ])
         
         return InlineKeyboardMarkup(inline_keyboard=keyboard) if keyboard else None
         
     except Exception as e:
-        print(f"Ошибка при проверке доступного времени: {e}")
+        logging.error(f"Ошибка при проверке доступного времени: {e}")
         return None
 
 
