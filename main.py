@@ -89,10 +89,11 @@ async def pd1(callback_query: CallbackQuery, state: FSMContext):
     
     try:
             await get_job_data(sheet_id, state)
+            text = user_data.get('pd1')
             keyboard = InlineKeyboardMarkup(inline_keyboard=[
             [InlineKeyboardButton(text="Продолжить", callback_data="next")]
             ])
-            await callback_query.message.answer(f"{user_data.get('pd1')}", reply_markup = keyboard)
+            await callback_query.message.answer(f"{text}", reply_markup = keyboard)
             await state.set_state(UserState.pd1)
     except Exception as e:
             await callback_query.message.answer(f"❌ Ошибка при загрузке данных: {str(e)}", reply_markup = FAIL_KEYBOARD)
@@ -109,53 +110,34 @@ async def pd2(callback_query: CallbackQuery, state: FSMContext):
 @router.callback_query(StateFilter(UserState.pd2))
 async def pd3(callback_query: CallbackQuery, state: FSMContext):
     user_data = await state.get_data()
-    sheet_id = user_data.get('sheet_id')
-    
-    try:
-            range_name = "I2:I2"
-            data = await get_google_sheet_data(sheet_id,range_name)
-            value = data[0][0]
-            keyboard = InlineKeyboardMarkup(inline_keyboard=[
-            [InlineKeyboardButton(text="Продолжить", callback_data="next")]
-            ])
-            await callback_query.message.answer(f"{value}", reply_markup = keyboard)
-            await state.set_state(UserState.pd3)
-    except Exception as e:
-            await callback_query.message.answer(f"❌ Ошибка при загрузке данных: {str(e)}", reply_markup = FAIL_KEYBOARD)
+    keyboard = InlineKeyboardMarkup(inline_keyboard=[
+    [InlineKeyboardButton(text="Продолжить", callback_data="next")]
+    ])
+    await callback_query.message.answer(f"{user_data.get('pd3')}", reply_markup = keyboard)
+    await state.set_state(UserState.pd3)
 
 @router.callback_query(StateFilter(UserState.pd3))
 async def pd4(callback_query: CallbackQuery, state: FSMContext):
     user_data = await state.get_data()
-    sheet_id = user_data.get('sheet_id')
-    
-    try:
-            range_name = "J2:J2"
-            data = await get_google_sheet_data(sheet_id,range_name)
-            value = data[0][0]
-            keyboard = InlineKeyboardMarkup(inline_keyboard=[
-            [InlineKeyboardButton(text="Продолжить", callback_data="next")]
-            ])
-            await callback_query.message.answer(f"{value}", reply_markup = keyboard)
-            await state.set_state(UserState.pd4)
-    except Exception as e:
-            await callback_query.message.answer(f"❌ Ошибка при загрузке данных: {str(e)}", reply_markup = FAIL_KEYBOARD)
+    keyboard = InlineKeyboardMarkup(inline_keyboard=[
+    [InlineKeyboardButton(text="Продолжить", callback_data="next")]
+    ])
+    await callback_query.message.answer(f"{user_data.get('pd4')}", reply_markup = keyboard)
+    await state.set_state(UserState.pd4)
 
 @router.callback_query(StateFilter(UserState.pd4))
 async def pd5(callback_query: CallbackQuery, state: FSMContext):
     user_data = await state.get_data()
-    sheet_id = user_data.get('sheet_id')
-    
-    try:
-            range_name = "K2:K2"
-            data = await get_google_sheet_data(sheet_id,range_name)
-            value = data[0][0]
-            keyboard = InlineKeyboardMarkup(inline_keyboard=[
-            [InlineKeyboardButton(text="Продолжить", callback_data="next")]
-            ])
-            await callback_query.message.answer(f"{value}", reply_markup = keyboard)
-            await state.set_state(UserState.pd5)
-    except Exception as e:
-            await callback_query.message.answer(f"❌ Ошибка при загрузке данных: {str(e)}", reply_markup = FAIL_KEYBOARD)
+    keyboard = InlineKeyboardMarkup(inline_keyboard=[
+    [InlineKeyboardButton(text="Продолжить", callback_data="next")]
+    ])
+    await callback_query.message.answer(f"{user_data.get('pd5')}", reply_markup = keyboard)
+    await state.set_state(UserState.pd5)
+
+
+
+
+
 
 @router.callback_query(StateFilter(UserState.pd5))
 async def q1(callback_query: CallbackQuery, state: FSMContext):
