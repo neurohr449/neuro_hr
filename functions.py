@@ -62,8 +62,10 @@ async def get_google_sheet_data(sheet_id: str, range_name: str = "B2:AB2"):
     return data
 
 
-async def get_google_sheet(sheet_id, list_index):
+async def get_google_sheet(sheet_id: str, list_index: int):
     scope = ["https://www.googleapis.com/auth/spreadsheets"]
+    
+    # Создаем credentials
     creds = Credentials.from_service_account_info({
         "type": os.getenv("GS_TYPE"),
         "project_id": os.getenv("GS_PROJECT_ID"),
@@ -78,17 +80,21 @@ async def get_google_sheet(sheet_id, list_index):
         "universe_domain": os.getenv("UNIVERSE_DOMAIN")
     }, scopes=scope)
     
-    # Асинхронное создание клиента
-    client = await asyncio.get_event_loop().run_in_executor(
-        None, 
-        lambda: gspread.authorize(creds)
-    )
+    # Асинхронная авторизация
+    try:
+        client = await asyncio.to_thread(gspread.authorize, creds)
+    except Exception as e:
+        print(f"Ошибка авторизации в Google Sheets: {e}")
+        raise
     
-    # Асинхронное открытие листа
-    return await asyncio.get_event_loop().run_in_executor(
-        None,
-        lambda: client.open_by_key(sheet_id).get_worksheet(list_index)
-    )
+    # Асинхронное открытие таблицы и листа
+    try:
+        spreadsheet = await asyncio.to_thread(client.open_by_key, sheet_id)
+        worksheet = await asyncio.to_thread(spreadsheet.get_worksheet, list_index)
+        return worksheet
+    except Exception as e:
+        print(f"Ошибка доступа к таблице Google Sheets: {e}")
+        raise
 
 
 
