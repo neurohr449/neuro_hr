@@ -77,8 +77,18 @@ async def get_google_sheet(sheet_id, list_index):
         "client_x509_cert_url": os.getenv("GS_CLIENT_X509_CERT_URL"),
         "universe_domain": os.getenv("UNIVERSE_DOMAIN")
     }, scopes=scope)
-    client = gspread.authorize(creds)
-    return client.open_by_key(sheet_id).get_worksheet(list_index) 
+    
+    # Асинхронное создание клиента
+    client = await asyncio.get_event_loop().run_in_executor(
+        None, 
+        lambda: gspread.authorize(creds)
+    )
+    
+    # Асинхронное открытие листа
+    return await asyncio.get_event_loop().run_in_executor(
+        None,
+        lambda: client.open_by_key(sheet_id).get_worksheet(list_index)
+    )
 
 
 
@@ -135,11 +145,8 @@ async def check_empty_cells(sheet_id: str) -> InlineKeyboardMarkup | None:
     и создает кнопки для столбцов с пустыми ячейками
     """
     try:
-        # Получаем объект таблицы
-        sheet = await asyncio.get_event_loop().run_in_executor(
-            None, 
-            lambda: get_google_sheet(sheet_id, 0)
-        )
+        # Получаем объект таблицы (теперь await, так как функция асинхронная)
+        sheet = await get_google_sheet(sheet_id, 0)
         
         # 1. Получаем заголовки (даты из строки 2)
         dates = await asyncio.get_event_loop().run_in_executor(
@@ -153,9 +160,6 @@ async def check_empty_cells(sheet_id: str) -> InlineKeyboardMarkup | None:
             lambda: sheet.get('B4:K21')
         )
         
-        print(f"Заголовки дат: {dates}")  # Отладочный вывод
-        print(f"Получено строк данных: {len(data)}")  # Отладочный вывод
-        
         keyboard = []
         
         # Проверяем каждый столбец (B-K)
@@ -164,7 +168,7 @@ async def check_empty_cells(sheet_id: str) -> InlineKeyboardMarkup | None:
             has_empty = False
             
             # Проверяем ячейки в столбце (18 строк)
-            for row_idx in range(min(len(data), 18)):  # Защита от выхода за границы
+            for row_idx in range(min(len(data), 18)):
                 if len(data[row_idx]) <= col_idx or data[row_idx][col_idx] == '':
                     has_empty = True
                     break
@@ -174,16 +178,14 @@ async def check_empty_cells(sheet_id: str) -> InlineKeyboardMarkup | None:
                 keyboard.append([
                     InlineKeyboardButton(
                         text=date,
-                        callback_data=f"select_date_{col_letter}2"  # Например "B2"
+                        callback_data=f"select_date_{col_letter}2"
                     )
                 ])
-                print(f"Добавлена кнопка для {col_letter}")  # Отладочный вывод
         
-        print(f"Создано кнопок: {len(keyboard)}")  # Отладочный вывод
         return InlineKeyboardMarkup(inline_keyboard=keyboard) if keyboard else None
         
     except Exception as e:
-        print(f"Ошибка в check_empty_cells: {str(e)}", exc_info=True)
+        logging.error(f"Ошибка в check_empty_cells: {str(e)}", exc_info=True)
         return None
 
 
