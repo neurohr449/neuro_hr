@@ -106,7 +106,7 @@ async def pd1(callback_query: CallbackQuery, state: FSMContext):
                 await state.set_state(UserState.pd1)
                 await callback_query.answer()
             else:
-                 await callback_query.message.answer("Вы уже получили отказ или произощла ошибка", reply_markup = FAIL_KEYBOARD)
+                 await callback_query.message.answer("Вы уже получили отказ или произошла ошибка", reply_markup = FAIL_KEYBOARD)
     except Exception as e:
             await callback_query.message.answer(f"❌ Ошибка при загрузке данных: {str(e)}", reply_markup = FAIL_KEYBOARD)
 
@@ -249,12 +249,16 @@ async def process_answers(message: Message, state: FSMContext):
     await message.answer(f"{text}")
     user_data = await state.get_data()
     sheet_id = user_data.get('sheet_id')
-
+    
     promt = f"Ты HR менеджер с опытом более 30 лет в найме, поиске и обучении персонала, с учетом всего своего опыта, чтобы в будущем подобрать идеального кандидата для нашей вакансии: {user_data.get('job_name')}, тебе надо принять решение, пригласить кандидата на собеседование или отказать. Не нужно давать комментарий, нужно только решение, одно слово \"Собеседование\" или \"Отказ\". Для принятия решения сравни текст вакансии {user_data.get('job_text')}, портрет кандидата {user_data.get('portrait')} и вопросы и ответы пользователя который надо оценить и написать. Вопрос 1: {user_data.get('q1')}, ответ: {user_data.get('ans1')}; Вопрос 2: {user_data.get('q2')}, ответ: {user_data.get('ans2')}; Вопрос 3: {user_data.get('q3')}, ответ: {user_data.get('ans3')}; Вопрос 4: {user_data.get('q4')}, ответ: {user_data.get('ans4')}; Вопрос 5: {user_data.get('q5')}, ответ: {user_data.get('ans5')}; Вопрос 6: {user_data.get('q6')}, ответ: {user_data.get('ans6')}; Вопрос 7:{user_data.get('q7')}, ответ: {user_data.get('ans7')}; Вопрос 8: {user_data.get('q8')}, ответ: {user_data.get('ans8')}; Вопрос 9: {user_data.get('q9')}, ответ: {user_data.get('ans9')}; Вопрос 10:{user_data.get('q10')}, ответ: {user_data.get('ans10')}"
     promt_2 = f"Ты HR менеджер с опытом более 30 лет в найме, поиске и обучении персонала, с учетом всего своего опыта, чтобы в будущем подобрать идеального кандидата для нашей вакансии: {user_data.get('job_name')}, тебе надо оценить кандидата, сравнить его с вакансией и написать комментарии что ты считаешь по нему. Вот вопросы и ответы пользователя который надо оценить и написать свои комментарии по кандидату строго до 1000 символов: Вопрос 1: {user_data.get('q1')}, ответ: {user_data.get('ans1')}; Вопрос 2: {user_data.get('q2')}, ответ: {user_data.get('ans2')}; Вопрос 3: {user_data.get('q3')}, ответ: {user_data.get('ans3')}; Вопрос 4: {user_data.get('q4')}, ответ: {user_data.get('ans4')}; Вопрос 5: {user_data.get('q5')}, ответ: {user_data.get('ans5')}; Вопрос 6: {user_data.get('q6')}, ответ: {user_data.get('ans6')}; Вопрос 7:{user_data.get('q7')}, ответ: {user_data.get('ans7')}; Вопрос 8: {user_data.get('q8')}, ответ: {user_data.get('ans8')}; Вопрос 9: {user_data.get('q9')}, ответ: {user_data.get('ans9')}; Вопрос 10:{user_data.get('q10')}, ответ: {user_data.get('ans10')} Вот текст вакансии для анализа {user_data.get('job_text')} и портрет кандидата {user_data.get('portrait')}"
+    user_qa = f"Вопрос 1: {user_data.get('q1')}, ответ: {user_data.get('ans1')}; Вопрос 2: {user_data.get('q2')}, ответ: {user_data.get('ans2')}; Вопрос 3: {user_data.get('q3')}, ответ: {user_data.get('ans3')}; Вопрос 4: {user_data.get('q4')}, ответ: {user_data.get('ans4')}; Вопрос 5: {user_data.get('q5')}, ответ: {user_data.get('ans5')}; Вопрос 6: {user_data.get('q6')}, ответ: {user_data.get('ans6')}; Вопрос 7:{user_data.get('q7')}, ответ: {user_data.get('ans7')}; Вопрос 8: {user_data.get('q8')}, ответ: {user_data.get('ans8')}; Вопрос 9: {user_data.get('q9')}, ответ: {user_data.get('ans9')}; Вопрос 10:{user_data.get('q10')}, ответ: {user_data.get('ans10')}"
     response = await get_chatgpt_response(promt)
     response_2 = await get_chatgpt_response(promt_2)
-    
+    await state.update_data(response=response, 
+                            response_2=response_2,
+                            user_qa = user_qa
+                            )
     await message.answer(f"{response}\n\n {response_2}")
     if response == "Собеседование":
         await state.set_state(UserState.result_yes)
@@ -391,9 +395,15 @@ async def process_time_selection(callback: CallbackQuery, state: FSMContext):
 
         # 6. Подготовка данных для записи
         record_text = (
-            f"{user_data.get('user_fio', 'Без имени')} | "
-            f"@{callback.from_user.username} | "
-            f"{user_data.get('user_phone', 'Без телефона')}"
+            f"Дата Время #{user_data.get('response')}\n"
+            f"Вакансия: {user_data.get('job_name')}"
+            f"ФИО: {user_data.get('user_fio', 'Без имени')}"
+            f"ТГ: @{callback.from_user.username}"
+            f"Номер: {user_data.get('user_phone', 'Без телефона')}"
+            f"Резюме: {user_data.get('user_resume')}"
+            f"https://docs.google.com/spreadsheets/d/{user_data.get('sheet_id')}"
+            f"AI комментарий:{user_data.get('response_2')}"
+            
         )
         
         # 7. Запись в таблицу (асинхронно)
@@ -415,9 +425,12 @@ async def process_time_selection(callback: CallbackQuery, state: FSMContext):
         # 9. Отправляем подтверждение пользователю
         await callback.message.edit_text(
             "✅ Запись успешна!\n"
+            "Дата: Дата"
             f"⏰ Время: {time_value}\n"
             f"👤 Контакты: {record_text}"
         )
+        chat_id = user_data.get('chat_id')
+        await bot.send_message(chat_id, f"{record_text}")
         
         # 10. Сохраняем данные в Google Sheets (асинхронно)
         success = await write_to_google_sheet(
@@ -425,7 +438,13 @@ async def process_time_selection(callback: CallbackQuery, state: FSMContext):
             username=callback.from_user.username,
             first_name=callback.from_user.first_name,
             status="Собеседование",
-            gpt_response=user_data.get('gpt_response', '')
+            gpt_response=user_data.get('gpt_response', ''),
+            full_name=user_data.get('user_fio'),
+            phone_number=user_data.get('user_phone'),
+            resume_link=user_data.get('user_resume'),
+            interview_date="Дата",
+            interview_time="Время",
+            qa_data=user_data.get('user_qa')
         )
         
         if not success:

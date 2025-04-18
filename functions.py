@@ -258,7 +258,7 @@ async def write_to_google_sheet(
 
 async def check_empty_cells(sheet_id: str) -> InlineKeyboardMarkup | None:
     """
-    Проверяет наличие пустых ячеек в столбцах дат (B2:K2 - даты, B4:K21 - данные)
+    Проверяет наличие пустых ячеек в столбцах дат (B2:F2 - даты, B4:F21 - данные)
     и создает кнопки для столбцов с пустыми ячейками
     """
     try:
@@ -268,18 +268,18 @@ async def check_empty_cells(sheet_id: str) -> InlineKeyboardMarkup | None:
         # 1. Получаем заголовки (даты из строки 2)
         dates = await asyncio.get_event_loop().run_in_executor(
             None,
-            lambda: sheet.row_values(2)[1:11]  # B2:K2
+            lambda: sheet.row_values(2)[1:5]  # B2:F2
         )
         
-        # 2. Получаем данные (B4:K21)
+        # 2. Получаем данные (B4:F21)
         data = await asyncio.get_event_loop().run_in_executor(
             None,
-            lambda: sheet.get('B4:K21')
+            lambda: sheet.get('B4:F21')
         )
         
         keyboard = []
         
-        # Проверяем каждый столбец (B-K)
+        # Проверяем каждый столбец (B-F)
         for col_idx in range(len(dates)):
             col_letter = chr(66 + col_idx)  # B=66, C=67,... K=75
             has_empty = False
@@ -384,6 +384,7 @@ async def get_job_data(sheet_id, state: FSMContext,):
         q10=row_data[20],
         portrait=row_data[26],
         job_text=row_data[27],
-        job_name=row_data[5]
+        job_name=row_data[5],
+        chat_id=row_data[29]
         )
     
