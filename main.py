@@ -116,7 +116,7 @@ async def pd2(callback_query: CallbackQuery, state: FSMContext):
     keyboard = InlineKeyboardMarkup(inline_keyboard=[
     [InlineKeyboardButton(text="Продолжить", callback_data="next")]
     ])
-    await callback_query.message.answer(f"{user_data.get('pd2')}", reply_markup = keyboard)
+    await callback_query.message.answer(f"{user_data.get('chat_id')}{user_data.get('pd2')}", reply_markup = keyboard)
     await state.set_state(UserState.pd2)
     await callback_query.answer()
 
@@ -428,7 +428,7 @@ async def process_time_selection(callback: CallbackQuery, state: FSMContext):
         )
         chat_id_str = user_data.get('chat_id')
         chat_id = int(chat_id_str)
-        await bot.send_message(chat_id, f"{record_text}")
+        await bot.send_message(chat_id=chat_id, text=f"{record_text}")
 
         # 10. Сохраняем данные в Google Sheets (асинхронно)
         success = await write_to_google_sheet(
