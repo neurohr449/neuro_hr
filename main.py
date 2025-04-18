@@ -63,6 +63,14 @@ class UserState(StatesGroup):
     slot_day = State()
     slot_time = State()
 
+
+@router.message(Command("chat"))
+async def chat_command(message: Message, state: FSMContext):
+    chat_id = "-1004636369368"
+    text = "Test"
+    await bot.send_message(chat_id, text)
+    print (chat_id)
+
 @router.message(CommandStart())
 async def command_start_handler(message: Message, command: CommandObject, state: FSMContext) -> None:
     await state.set_state(UserState.welcome)
@@ -116,7 +124,7 @@ async def pd2(callback_query: CallbackQuery, state: FSMContext):
     keyboard = InlineKeyboardMarkup(inline_keyboard=[
     [InlineKeyboardButton(text="Продолжить", callback_data="next")]
     ])
-    await callback_query.message.answer(f"{user_data.get('chat_id')}{user_data.get('pd2')}", reply_markup = keyboard)
+    await callback_query.message.answer(f"{user_data.get('pd2')}", reply_markup = keyboard)
     await state.set_state(UserState.pd2)
     await callback_query.answer()
 
@@ -426,8 +434,8 @@ async def process_time_selection(callback: CallbackQuery, state: FSMContext):
             f"⏰ Время: {time_value}\n"
             f"👤 Контакты: {record_text}"
         )
-        chat_id_str = user_data.get('chat_id')
-        chat_id = int(chat_id_str)
+        chat_id = user_data.get('chat_id')
+        
         await bot.send_message(chat_id=chat_id, text=f"{record_text}")
 
         # 10. Сохраняем данные в Google Sheets (асинхронно)
