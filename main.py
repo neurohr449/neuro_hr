@@ -88,7 +88,7 @@ async def command_start_handler(message: Message, command: CommandObject, state:
 
 @router.message(Command("chat"))
 async def chat_command(message: Message, state: FSMContext):
-    chat_id = "-1004636369368"
+    chat_id = "-4636369368"
     text = "Test"
     await bot.send_message(chat_id, text)
     print (chat_id)
