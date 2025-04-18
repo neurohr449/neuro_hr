@@ -64,12 +64,7 @@ class UserState(StatesGroup):
     slot_time = State()
 
 
-@router.message(Command("chat"))
-async def chat_command(message: Message, state: FSMContext):
-    chat_id = "-1004636369368"
-    text = "Test"
-    await bot.send_message(chat_id, text)
-    print (chat_id)
+
 
 @router.message(CommandStart())
 async def command_start_handler(message: Message, command: CommandObject, state: FSMContext) -> None:
@@ -89,7 +84,26 @@ async def command_start_handler(message: Message, command: CommandObject, state:
     else:
         await message.answer("👋 Добрый день. Запустите бота по уникальной ссылке!\n\nСсылка для тестов: https://t.me/pnhr_test_bot?start=1dM69zoKynsuN38Z7p2XtS09TXufwmo3cZL6bHi_zcyw")
 
-    
+
+
+@router.message(Command("chat"))
+async def chat_command(message: Message, state: FSMContext):
+    chat_id = "-1004636369368"
+    text = "Test"
+    await bot.send_message(chat_id, text)
+    print (chat_id)
+
+@router.message(Command("get_chat_chat"))
+async def chat_command(message: Message, state: FSMContext):
+    chat_id = message.chat.id
+    chat_type = message.chat.type
+    await message.reply(
+        f"🆔 Chat ID: <code>{chat_id}</code>\n"
+        f"📌 Тип чата: {chat_type}",
+        parse_mode="HTML"
+    )
+
+
 @router.callback_query(StateFilter(UserState.welcome))
 async def pd1(callback_query: CallbackQuery, state: FSMContext):
     user_data = await state.get_data()
