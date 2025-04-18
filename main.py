@@ -392,13 +392,13 @@ async def process_time_selection(callback: CallbackQuery, state: FSMContext):
 
         # 6. Подготовка данных для записи
         record_text = (
-            f"Дата Время #{user_data.get('response')}\n"
-            f"Вакансия: {user_data.get('job_name')}"
-            f"ФИО: {user_data.get('user_fio', 'Без имени')}"
-            f"ТГ: @{callback.from_user.username}"
-            f"Номер: {user_data.get('user_phone', 'Без телефона')}"
-            f"Резюме: {user_data.get('user_resume')}"
-            f"https://docs.google.com/spreadsheets/d/{user_data.get('sheet_id')}"
+            f"Дата Время #{user_data.get('response')}\n\n"
+            f"Вакансия: {user_data.get('job_name')}\n\n"
+            f"ФИО: {user_data.get('user_fio', 'Без имени')}\n"
+            f"ТГ: @{callback.from_user.username}\n"
+            f"Номер: {user_data.get('user_phone', 'Без телефона')}\n"
+            f"Резюме: {user_data.get('user_resume')}\n"
+            f"Cылка на таблицу: https://docs.google.com/spreadsheets/d/{user_data.get('sheet_id')}\n\n"
             f"AI комментарий:{user_data.get('response_2')}"
             
         )
@@ -426,7 +426,8 @@ async def process_time_selection(callback: CallbackQuery, state: FSMContext):
             f"⏰ Время: {time_value}\n"
             f"👤 Контакты: {record_text}"
         )
-        chat_id = user_data.get('chat_id')
+        chat_id_str = user_data.get('chat_id')
+        chat_id = int(chat_id_str)
         await bot.send_message(chat_id, f"{record_text}")
 
         # 10. Сохраняем данные в Google Sheets (асинхронно)
@@ -447,7 +448,7 @@ async def process_time_selection(callback: CallbackQuery, state: FSMContext):
         if not success:
             await callback.message.answer("⚠️ Ошибка сохранения данных в таблицу")
         
-        await state.clear()
+        
         
     except Exception as e:
         logging.error(f"Ошибка записи: {str(e)}", exc_info=True)

@@ -268,7 +268,7 @@ async def check_empty_cells(sheet_id: str) -> InlineKeyboardMarkup | None:
         # 1. Получаем заголовки (даты из строки 2)
         dates = await asyncio.get_event_loop().run_in_executor(
             None,
-            lambda: sheet.row_values(2)[1:5]  # B2:F2
+            lambda: sheet.row_values(2)[1:6]  # B2:F2
         )
         
         # 2. Получаем данные (B4:F21)
