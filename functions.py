@@ -258,30 +258,41 @@ async def write_to_google_sheet(
 
 async def check_empty_cells(sheet_id: str) -> InlineKeyboardMarkup | None:
     """
-    Проверяет наличие пустых ячеек в столбцах дат (B2:F2 - даты, B4:F21 - данные)
+    Проверяет наличие пустых ячеек в столбцах дат (B2:AF2 - даты, B4:AF21 - данные)
     и создает кнопки для столбцов с пустыми ячейками
     """
     try:
         # Получаем объект таблицы (теперь await, так как функция асинхронная)
         sheet = await get_google_sheet(sheet_id, 0)
         
-        # 1. Получаем заголовки (даты из строки 2)
+        # 1. Получаем заголовки (даты из строки 3)
         dates = await asyncio.get_event_loop().run_in_executor(
             None,
-            lambda: sheet.row_values(2)[1:6]  # B2:F2
+            lambda: sheet.row_values(3)[1:31]  # B3:AF3
         )
         
-        # 2. Получаем данные (B4:F21)
+        # 2. Получаем данные (B4:AF21)
         data = await asyncio.get_event_loop().run_in_executor(
             None,
-            lambda: sheet.get('B4:F21')
+            lambda: sheet.get('B4:AF21')
         )
         
         keyboard = []
-        
-        # Проверяем каждый столбец (B-F)
+        max_buttons = 10
+        buttons_added = 0
+        now = datetime.now()
+        current_date = now.date()
+
+
+        # Проверяем каждый столбец (B-AF)
         for col_idx in range(len(dates)):
-            col_letter = chr(66 + col_idx)  # B=66, C=67,... K=75
+            if buttons_added >= max_buttons:
+                break
+
+            if col_idx < 26:  # B-Z (0-25)
+                col_letter = chr(66 + col_idx)  # B=66, ..., Z=90
+            else:  # AA-AF (26-30)
+                col_letter = 'A' + chr(65 + (col_idx - 26))  # AA=65+0, AB=65+1, ..., AF=65+5
             has_empty = False
             
             # Проверяем ячейки в столбце (18 строк)
@@ -290,7 +301,14 @@ async def check_empty_cells(sheet_id: str) -> InlineKeyboardMarkup | None:
                     has_empty = True
                     break
             
-            if has_empty:
+            try:
+                date_str = dates[col_idx].split()[1]  # Получаем "31.03.2025"
+                table_date = datetime.strptime(date_str, "%d.%m.%Y").date()
+                is_future_date = table_date >= current_date  # True если дата >= сегодня
+            except (ValueError, IndexError, AttributeError):
+                is_future_date = False
+
+            if has_empty and is_future_date:                
                 date = dates[col_idx] if col_idx < len(dates) else f"Столбец {col_letter}"
                 keyboard.append([
                     InlineKeyboardButton(
@@ -298,7 +316,7 @@ async def check_empty_cells(sheet_id: str) -> InlineKeyboardMarkup | None:
                         callback_data=f"select_date_{col_letter}2"
                     )
                 ])
-        
+                buttons_added += 1
         return InlineKeyboardMarkup(inline_keyboard=keyboard) if keyboard else None
         
     except Exception as e:

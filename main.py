@@ -86,22 +86,22 @@ async def command_start_handler(message: Message, command: CommandObject, state:
 
 
 
-@router.message(Command("chat"))
-async def chat_command(message: Message, state: FSMContext):
-    chat_id = "-4636369368"
-    text = "Test"
-    await bot.send_message(chat_id, text)
-    print (chat_id)
+# @router.message(Command("chat"))
+# async def chat_command(message: Message, state: FSMContext):
+#     chat_id = "-4636369368"
+#     text = "Test"
+#     await bot.send_message(chat_id, text)
+#     print (chat_id)
 
-@router.message(Command("get_chat_chat"))
-async def chat_command(message: Message, state: FSMContext):
-    chat_id = message.chat.id
-    chat_type = message.chat.type
-    await message.reply(
-        f"🆔 Chat ID: <code>{chat_id}</code>\n"
-        f"📌 Тип чата: {chat_type}",
-        parse_mode="HTML"
-    )
+# @router.message(Command("get_chat_chat"))
+# async def chat_command(message: Message, state: FSMContext):
+#     chat_id = message.chat.id
+#     chat_type = message.chat.type
+#     await message.reply(
+#         f"🆔 Chat ID: <code>{chat_id}</code>\n"
+#         f"📌 Тип чата: {chat_type}",
+#         parse_mode="HTML"
+#     )
 
 
 @router.callback_query(StateFilter(UserState.welcome))
@@ -440,6 +440,10 @@ async def process_time_selection(callback: CallbackQuery, state: FSMContext):
             None,
             lambda: sheet.acell(f'A{row_number}').value
         )
+        date_value = await asyncio.get_event_loop().run_in_executor(
+             None,
+            lambda: sheet.acell(f'{column_letter}3').value
+        )
         
         # 9. Отправляем подтверждение пользователю
         await callback.message.edit_text(
@@ -450,7 +454,7 @@ async def process_time_selection(callback: CallbackQuery, state: FSMContext):
         )
         chat_id = user_data.get('chat_id')
         
-        await bot.send_message(chat_id=chat_id, text=f"{record_text}")
+        await bot.send_message(chat_id=chat_id, text=f"{record_text}", disable_web_page_preview=True)
 
         # 10. Сохраняем данные в Google Sheets (асинхронно)
         success = await write_to_google_sheet(
@@ -458,12 +462,12 @@ async def process_time_selection(callback: CallbackQuery, state: FSMContext):
             username=callback.from_user.username,
             first_name=callback.from_user.first_name,
             status="Собеседование",
-            gpt_response=user_data.get('gpt_response', ''),
+            gpt_response=user_data.get('response_2', ''),
             full_name=user_data.get('user_fio'),
             phone_number=user_data.get('user_phone'),
             resume_link=user_data.get('user_resume'),
-            interview_date="Дата",
-            interview_time="Время",
+            interview_date=date_value,
+            interview_time=time_value,
             qa_data=user_data.get('user_qa')
         )
         
