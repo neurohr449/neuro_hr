@@ -78,6 +78,8 @@ async def command_start_handler(message: Message, command: CommandObject, state:
             keyboard = InlineKeyboardMarkup(inline_keyboard=[
             [InlineKeyboardButton(text="Поехали", callback_data="next")]
             ])
+            print("Текущее время сервера:", datetime.now())
+            print("Текущее время сервера (UTC):", datetime.utcnow())
             
             await message.answer(f"{text}", reply_markup = keyboard)
         except Exception as e:
@@ -433,9 +435,7 @@ async def process_time_selection(callback: CallbackQuery, state: FSMContext):
              None,
             lambda: sheet.acell(f'{column_letter}3').value
         )
-        await state.update_data(time_value=time_value, 
-                            date_value=date_value
-                            )
+        
         
 
         # 7. Подготовка данных для записи
@@ -450,6 +450,10 @@ async def process_time_selection(callback: CallbackQuery, state: FSMContext):
             f"AI комментарий:{user_data.get('response_2')}"
             
         )
+        
+        await state.update_data(time_value=time_value, 
+                            date_value=date_value
+                            )
         
         # 8. Запись в таблицу (асинхронно)
         await asyncio.get_event_loop().run_in_executor(
