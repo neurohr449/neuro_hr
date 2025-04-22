@@ -479,7 +479,7 @@ async def process_time_selection(callback: CallbackQuery, state: FSMContext):
                                 text=f"{record_text}",
                                 disable_web_page_preview=True
                                 )
-        await bot.send_video(chatid=chat_id,
+        await bot.send_video(chat_id=chat_id,
                              video=user_data.get('video'),
                              caption="Видео от кандидата"
                              )
@@ -516,7 +516,6 @@ async def time_change(callback_query: CallbackQuery, state: FSMContext):
         sheet_id = user_data.get('sheet_id')
         target_cell = user_data.get('target_cell')
         await clear_cell(sheet_id, target_cell)
-        await callback_query.message.answer("Запись успешно удалена!", reply_markup = keyboard)
         await state.set_state(UserState.slot_day)
          
         # Получаем sheet_id из состояния или базы данных
