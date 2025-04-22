@@ -479,10 +479,12 @@ async def process_time_selection(callback: CallbackQuery, state: FSMContext):
                                 text=f"{record_text}",
                                 disable_web_page_preview=True
                                 )
-        await bot.send_video(chat_id=chat_id,
-                             video=user_data.get('video'),
-                             caption="Видео от кандидата"
-                             )
+        video = user_data.get('video')
+        if video:
+            await bot.send_video(chat_id=chat_id,
+                                video=video,
+                                caption="Видео от кандидата"
+                                )
         
         # 10. Сохраняем данные в Google Sheets (асинхронно)
         success = await write_to_google_sheet(
