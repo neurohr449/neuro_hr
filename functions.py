@@ -23,6 +23,8 @@ from openai import AsyncOpenAI
 from datetime import datetime
 from zoneinfo import ZoneInfo
 
+from main import MOSCOW_TZ
+
 client = AsyncOpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 async def get_chatgpt_response(prompt: str) -> str:
@@ -395,6 +397,11 @@ async def clear_cell(sheet_id: str, cell_range: str) -> bool:
         print(f"Ошибка очистки ячейки: {e}")
         return False
 
+def parse_interview_datetime(date_str: str, time_str: str) -> datetime:
+    
+    date_part = date_str.split()[1]  
+    date_obj = datetime.strptime(f"{date_part} {time_str}", "%d.%m.%Y %H:%M")
+    return date_obj.replace(tzinfo=MOSCOW_TZ)  
 
 async def get_job_data(sheet_id, state: FSMContext,):
     range_name = "A2:AD2"

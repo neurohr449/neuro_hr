@@ -20,7 +20,7 @@ import gspread
 import re
 from google.oauth2.service_account import Credentials
 from openai import AsyncOpenAI
-from datetime import datetime
+from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
 from functions import *
 
@@ -29,6 +29,8 @@ FAIL_KEYBOARD = InlineKeyboardMarkup(inline_keyboard=[
             [InlineKeyboardButton(text="Попробовать снова", callback_data="retry")]
             ])
 client = AsyncOpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+MOSCOW_TZ = ZoneInfo("Europe/Moscow")
+SERVER_TZ = ZoneInfo("UTC")
 
 # from auth import BOT_TOKEN
 bot = Bot(token=BOT_TOKEN, default=DefaultBotProperties(
@@ -78,8 +80,6 @@ async def command_start_handler(message: Message, command: CommandObject, state:
             keyboard = InlineKeyboardMarkup(inline_keyboard=[
             [InlineKeyboardButton(text="Поехали", callback_data="next")]
             ])
-            print("Текущее время сервера:", datetime.now())
-            print("Текущее время сервера (UTC):", datetime.utcnow())
             
             await message.answer(f"{text}", reply_markup = keyboard)
         except Exception as e:
@@ -106,11 +106,23 @@ async def chat_command(message: Message, state: FSMContext):
         parse_mode="HTML"
     )
 
+async def check_survey_completion(chat_id: int, state: FSMContext):
+    await asyncio.sleep(3600)  # Ждем 1 час
+    
+    data = await state.get_data()
+    if not data.get("survey_completed", False):
+        await bot.send_message(chat_id, "Привет! 👋 Мы заметили, что ты начал записываться на собеседование, но не завершил процесс. Заканчивай запись и получи шанс пройти отбор на классную вакансию!")
+
 
 @router.callback_query(StateFilter(UserState.welcome))
 async def pd1(callback_query: CallbackQuery, state: FSMContext):
     user_data = await state.get_data()
     sheet_id = user_data.get('sheet_id')
+    await state.update_data(
+        survey_started=datetime.now(),
+        survey_completed=False
+    )
+    asyncio.create_task(check_survey_completion(callback_query.message.chat.id, state))
     
     try:
             user = callback_query.from_user
@@ -505,6 +517,17 @@ async def process_time_selection(callback: CallbackQuery, state: FSMContext):
             qa_data=user_data.get('user_qa')
         )
         
+
+        interview_time = parse_interview_datetime(date_value, time_value)
+        interview_time_utc = interview_time.astimezone(SERVER_TZ)
+        task1 = asyncio.create_task(send_reminder_at_time(callback.message.chat.id, interview_time_utc - timedelta(hours=1), "⏰ До собеседования 1 час!"))
+        task2 = asyncio.create_task(send_reminder_at_time(callback.message.chat.id, interview_time_utc, "🔔 Собеседование начинается сейчас!"))
+        
+        await state.update_data(
+        date_value=date_value,
+        time_value=time_value,
+        reminder_tasks=[id(task1), id(task2)]  # Список ID задач
+        )
         if not success:
             await callback.message.answer("⚠️ Ошибка сохранения данных в таблицу")
         
@@ -551,15 +574,30 @@ async def time_change(callback_query: CallbackQuery, state: FSMContext):
         keyboard = InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text="Новая запись", callback_data="change_time")]
         ])
+
         await callback_query.message.answer("Запись успешно удалена!", reply_markup = keyboard)
 
         await callback_query.answer()
     
+##########################################################################################################################################################################################################
+async def send_reminder(chat_id: int, text: str):
+    await Bot.get_current().send_message(chat_id, text)
 
 
+async def send_reminder_at_time(chat_id: int, time_utc: datetime, text: str):
+    delay = (time_utc - datetime.now(SERVER_TZ)).total_seconds()
+    if delay > 0:
+        await asyncio.sleep(delay)
+        await send_reminder(chat_id, text)
 
 
-
+async def cancel_old_reminders(state: FSMContext):
+    data = await state.get_data()
+    if "reminder_tasks" in data:
+        for task_id in data["reminder_tasks"]:
+            task = asyncio.all_tasks().get(task_id)
+            if task and not task.done():
+                task.cancel()
 
 ##########################################################################################################################################################################################################
 ##########################################################################################################################################################################################################
