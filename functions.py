@@ -379,6 +379,22 @@ async def get_available_times(sheet_id: str, selected_date_cell: str) -> InlineK
         return None
 
 
+async def clear_cell(sheet_id: str, cell_range: str) -> bool:
+    """
+    Очищает значение в указанной ячейке
+    
+    :param sheet_id: ID таблицы
+    :param cell_range: Диапазон в формате 'A1' или 'Лист1!A1'
+    :return: True если успешно, False при ошибке
+    """
+    try:
+        sheet = await get_google_sheet(sheet_id, 0)  # 0 - индекс листа
+        await asyncio.to_thread(sheet.update, cell_range, [['']])  # Записываем пустую строку
+        return True
+    except Exception as e:
+        print(f"Ошибка очистки ячейки: {e}")
+        return False
+
 
 async def get_job_data(sheet_id, state: FSMContext,):
     range_name = "A2:AD2"

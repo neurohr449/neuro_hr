@@ -62,6 +62,7 @@ class UserState(StatesGroup):
     user_resume = State()
     slot_day = State()
     slot_time = State()
+    process_time_change = State()
 
 
 
@@ -93,15 +94,15 @@ async def command_start_handler(message: Message, command: CommandObject, state:
 #     await bot.send_message(chat_id, text)
 #     print (chat_id)
 
-# @router.message(Command("get_chat_chat"))
-# async def chat_command(message: Message, state: FSMContext):
-#     chat_id = message.chat.id
-#     chat_type = message.chat.type
-#     await message.reply(
-#         f"🆔 Chat ID: <code>{chat_id}</code>\n"
-#         f"📌 Тип чата: {chat_type}",
-#         parse_mode="HTML"
-#     )
+@router.message(Command("get_chat_id"))
+async def chat_command(message: Message, state: FSMContext):
+    chat_id = message.chat.id
+    chat_type = message.chat.type
+    await message.reply(
+        f"🆔 Chat ID: <code>{chat_id}</code>\n"
+        f"📌 Тип чата: {chat_type}",
+        parse_mode="HTML"
+    )
 
 
 @router.callback_query(StateFilter(UserState.welcome))
@@ -128,7 +129,7 @@ async def pd1(callback_query: CallbackQuery, state: FSMContext):
                 await state.set_state(UserState.pd1)
                 await callback_query.answer()
             else:
-                 await callback_query.message.answer("Вы уже получили отказ или произошла ошибка", reply_markup = FAIL_KEYBOARD)
+                 await callback_query.message.answer("Вы уже получили отказ")
     except Exception as e:
             await callback_query.message.answer(f"❌ Ошибка при загрузке данных: {str(e)}", reply_markup = FAIL_KEYBOARD)
 
@@ -265,23 +266,33 @@ async def q10(message: Message, state: FSMContext):
 
 @router.message(StateFilter(UserState.q10))
 async def process_answers(message: Message, state: FSMContext):
+    if message.video:
+         video=message.video.file_id
+         state.update_data(video=video)
     ans10 = message.text
     await state.update_data(ans10=ans10)
     text = "Спасибо за прохождение тестирования! \n\n📝В данный момент идет его проверка, и это займет всего 1 минуту ⏳.\n\nПожалуйста, подождите немного, и мы сообщим вам результат.\n\n❗️На другие кнопки пока идет проверка нажимать не нужно.\n\nВаше терпение очень ценится! 🙏"
     await message.answer(f"{text}")
     user_data = await state.get_data()
     sheet_id = user_data.get('sheet_id')
+    promt = f"Ты HR менеджер с опытом более 30 лет в найме, поиске и обучении персонала, с учетом всего своего опыта, чтобы в будущем подобрать кандидата для нашей вакансии: {user_data.get('job_name')}, тебе надо дать оценку по десятибальной шкале для каждого ответа на вопрос и выдать общий балл по кандидату. Не нужно давать комментарий, нужно только число. (Обязательно без спецсимволов, например точки). Для принятия решения сравни текст вакансии {user_data.get('job_text')}, портрет кандидата {user_data.get('portrait')} и вопросы и ответы пользователя который надо оценить и написать. Вопрос 1: {user_data.get('q1')}, ответ: {user_data.get('ans1')}; Вопрос 2: {user_data.get('q2')}, ответ: {user_data.get('ans2')}; Вопрос 3: {user_data.get('q3')}, ответ: {user_data.get('ans3')}; Вопрос 4: {user_data.get('q4')}, ответ: {user_data.get('ans4')}; Вопрос 5: {user_data.get('q5')}, ответ: {user_data.get('ans5')}; Вопрос 6: {user_data.get('q6')}, ответ: {user_data.get('ans6')}; Вопрос 7:{user_data.get('q7')}, ответ: {user_data.get('ans7')}; Вопрос 8: {user_data.get('q8')}, ответ: {user_data.get('ans8')}; Вопрос 9: {user_data.get('q9')}, ответ: {user_data.get('ans9')}; Вопрос 10:{user_data.get('q10')}, ответ: {user_data.get('ans10')}."
     
-    promt = f"Ты HR менеджер с опытом более 30 лет в найме, поиске и обучении персонала, с учетом всего своего опыта, чтобы в будущем подобрать идеального кандидата для нашей вакансии: {user_data.get('job_name')}, тебе надо принять решение, пригласить кандидата на собеседование или отказать. Не нужно давать комментарий, нужно только решение, одно слово \"Собеседование\" или \"Отказ\"(Обязательно без спецсимволов, например точки). Для принятия решения сравни текст вакансии {user_data.get('job_text')}, портрет кандидата {user_data.get('portrait')} и вопросы и ответы пользователя который надо оценить и написать. Вопрос 1: {user_data.get('q1')}, ответ: {user_data.get('ans1')}; Вопрос 2: {user_data.get('q2')}, ответ: {user_data.get('ans2')}; Вопрос 3: {user_data.get('q3')}, ответ: {user_data.get('ans3')}; Вопрос 4: {user_data.get('q4')}, ответ: {user_data.get('ans4')}; Вопрос 5: {user_data.get('q5')}, ответ: {user_data.get('ans5')}; Вопрос 6: {user_data.get('q6')}, ответ: {user_data.get('ans6')}; Вопрос 7:{user_data.get('q7')}, ответ: {user_data.get('ans7')}; Вопрос 8: {user_data.get('q8')}, ответ: {user_data.get('ans8')}; Вопрос 9: {user_data.get('q9')}, ответ: {user_data.get('ans9')}; Вопрос 10:{user_data.get('q10')}, ответ: {user_data.get('ans10')}. Желаемая строгость оценки по десятибальной шкале 0 из 10(где 0 это принять всех кандидатов, а 10 Принять только идеального кандидата). Но помни про формат ответа"
+    #promt = f"Ты HR менеджер с опытом более 30 лет в найме, поиске и обучении персонала, с учетом всего своего опыта, чтобы в будущем подобрать кандидата для нашей вакансии: {user_data.get('job_name')}, тебе надо принять решение, пригласить кандидата на собеседование или отказать. Не нужно давать комментарий, нужно только решение, одно слово \"Собеседование\" или \"Отказ\"(Обязательно без спецсимволов, например точки). Для принятия решения сравни текст вакансии {user_data.get('job_text')}, портрет кандидата {user_data.get('portrait')} и вопросы и ответы пользователя который надо оценить и написать. Вопрос 1: {user_data.get('q1')}, ответ: {user_data.get('ans1')}; Вопрос 2: {user_data.get('q2')}, ответ: {user_data.get('ans2')}; Вопрос 3: {user_data.get('q3')}, ответ: {user_data.get('ans3')}; Вопрос 4: {user_data.get('q4')}, ответ: {user_data.get('ans4')}; Вопрос 5: {user_data.get('q5')}, ответ: {user_data.get('ans5')}; Вопрос 6: {user_data.get('q6')}, ответ: {user_data.get('ans6')}; Вопрос 7:{user_data.get('q7')}, ответ: {user_data.get('ans7')}; Вопрос 8: {user_data.get('q8')}, ответ: {user_data.get('ans8')}; Вопрос 9: {user_data.get('q9')}, ответ: {user_data.get('ans9')}; Вопрос 10:{user_data.get('q10')}, ответ: {user_data.get('ans10')}. Желаемая строгость оценки по десятибальной шкале 0 из 10(где 0 это принять всех кандидатов, а 10 Принять только идеального кандидата). Но помни про формат ответа"
     promt_2 = f"Ты HR менеджер с опытом более 30 лет в найме, поиске и обучении персонала, с учетом всего своего опыта, чтобы в будущем подобрать идеального кандидата для нашей вакансии: {user_data.get('job_name')}, тебе надо оценить кандидата, сравнить его с вакансией и написать комментарии что ты считаешь по нему. Вот вопросы и ответы пользователя который надо оценить и написать свои комментарии по кандидату строго до 1000 символов: Вопрос 1: {user_data.get('q1')}, ответ: {user_data.get('ans1')}; Вопрос 2: {user_data.get('q2')}, ответ: {user_data.get('ans2')}; Вопрос 3: {user_data.get('q3')}, ответ: {user_data.get('ans3')}; Вопрос 4: {user_data.get('q4')}, ответ: {user_data.get('ans4')}; Вопрос 5: {user_data.get('q5')}, ответ: {user_data.get('ans5')}; Вопрос 6: {user_data.get('q6')}, ответ: {user_data.get('ans6')}; Вопрос 7:{user_data.get('q7')}, ответ: {user_data.get('ans7')}; Вопрос 8: {user_data.get('q8')}, ответ: {user_data.get('ans8')}; Вопрос 9: {user_data.get('q9')}, ответ: {user_data.get('ans9')}; Вопрос 10:{user_data.get('q10')}, ответ: {user_data.get('ans10')} Вот текст вакансии для анализа {user_data.get('job_text')} и портрет кандидата {user_data.get('portrait')}"
     user_qa = f"Вопрос 1: {user_data.get('q1')}, ответ: {user_data.get('ans1')}; Вопрос 2: {user_data.get('q2')}, ответ: {user_data.get('ans2')}; Вопрос 3: {user_data.get('q3')}, ответ: {user_data.get('ans3')}; Вопрос 4: {user_data.get('q4')}, ответ: {user_data.get('ans4')}; Вопрос 5: {user_data.get('q5')}, ответ: {user_data.get('ans5')}; Вопрос 6: {user_data.get('q6')}, ответ: {user_data.get('ans6')}; Вопрос 7:{user_data.get('q7')}, ответ: {user_data.get('ans7')}; Вопрос 8: {user_data.get('q8')}, ответ: {user_data.get('ans8')}; Вопрос 9: {user_data.get('q9')}, ответ: {user_data.get('ans9')}; Вопрос 10:{user_data.get('q10')}, ответ: {user_data.get('ans10')}"
-    response = await get_chatgpt_response(promt)
+    response_score = await get_chatgpt_response(promt)
     response_2 = await get_chatgpt_response(promt_2)
+    target_score = 25
+    if int(response_score) >= target_score:
+        response = "Собеседование"
+    else:
+        response = "Отказ"
+         
     await state.update_data(response=response, 
                             response_2=response_2,
                             user_qa = user_qa
                             )
-    await message.answer(f"{response}\n\n {response_2}")
+    await message.answer(f"{response_score}\n\n{response}\n\n {response_2}")
     if response == "Собеседование":
         await state.set_state(UserState.result_yes)
         await write_to_google_sheet(
@@ -348,7 +359,7 @@ async def process_resume(message: Message, state: FSMContext):
                 )
                 
         else:
-                await message.answer("Все ячейки заполнены!")
+                await message.answer("Нет доступного времени")
 
 
 
@@ -397,7 +408,8 @@ async def process_time_selection(callback: CallbackQuery, state: FSMContext):
         sheet = await get_google_sheet(sheet_id, 0)
         
         target_cell = f"{column_letter}{row_number}"
-        
+        await state.update_data(target_cell = target_cell)
+
         # 4. Проверяем ячейку (асинхронно через run_in_executor)
         cell_value = await asyncio.get_event_loop().run_in_executor(
             None,
@@ -411,10 +423,24 @@ async def process_time_selection(callback: CallbackQuery, state: FSMContext):
                 show_alert=True
             )
             return
+        
+        # 6. Получаем время для отображения пользователю (асинхронно)
+        time_value = await asyncio.get_event_loop().run_in_executor(
+            None,
+            lambda: sheet.acell(f'A{row_number}').value
+        )
+        date_value = await asyncio.get_event_loop().run_in_executor(
+             None,
+            lambda: sheet.acell(f'{column_letter}3').value
+        )
+        await state.update_data(time_value=time_value, 
+                            date_value=date_value
+                            )
+        
 
-        # 6. Подготовка данных для записи
+        # 7. Подготовка данных для записи
         record_text = (
-            f"Дата Время #{user_data.get('response')}\n\n"
+            f"{user_data.get('date_value')} {user_data.get('time_value')} #{user_data.get('response')}\n\n"
             f"Вакансия: {user_data.get('job_name')}\n\n"
             f"ФИО: {user_data.get('user_fio', 'Без имени')}\n"
             f"ТГ: @{callback.from_user.username}\n"
@@ -425,7 +451,7 @@ async def process_time_selection(callback: CallbackQuery, state: FSMContext):
             
         )
         
-        # 7. Запись в таблицу (асинхронно)
+        # 8. Запись в таблицу (асинхронно)
         await asyncio.get_event_loop().run_in_executor(
             None,
             lambda: sheet.update(
@@ -435,27 +461,29 @@ async def process_time_selection(callback: CallbackQuery, state: FSMContext):
             )
         )
         
-        # 8. Получаем время для отображения пользователю (асинхронно)
-        time_value = await asyncio.get_event_loop().run_in_executor(
-            None,
-            lambda: sheet.acell(f'A{row_number}').value
-        )
-        date_value = await asyncio.get_event_loop().run_in_executor(
-             None,
-            lambda: sheet.acell(f'{column_letter}3').value
-        )
+        
+        keyboard =  InlineKeyboardMarkup(inline_keyboard=[
+                [InlineKeyboardButton(text="Изменить время", callback_data="change_time")],
+                [InlineKeyboardButton(text="Удалить запись", callback_data="delete_time")]
+                ])
         
         # 9. Отправляем подтверждение пользователю
         await callback.message.edit_text(
-            "✅ Запись успешна!\n"
-            "Дата: Дата"
-            f"⏰ Время: {time_value}\n"
-            f"👤 Контакты: {record_text}"
+            f"💖 Спасибо, что выбрали нас! Ждем Вас в {date_value} в #{time_value} на собеседование, ссылку пришлем за пару минут до его начала.\n\n"
+            "Если у вас изменились планы, то не забудьте нажать на кнопку \"Изменить время\" или \"Удалить запись\", если вовсе передумали.", reply_markup=keyboard
         )
         chat_id = user_data.get('chat_id')
+        await state.set_state(UserState.process_time_change)
         
-        await bot.send_message(chat_id=chat_id, text=f"{record_text}", disable_web_page_preview=True)
-
+        await bot.send_message(chat_id=chat_id,
+                                text=f"{record_text}",
+                                disable_web_page_preview=True
+                                )
+        await bot.send_video(chatid=chat_id,
+                             video=user_data.get('video'),
+                             caption="Видео от кандидата"
+                             )
+        
         # 10. Сохраняем данные в Google Sheets (асинхронно)
         success = await write_to_google_sheet(
             sheet_id=sheet_id,
@@ -481,7 +509,47 @@ async def process_time_selection(callback: CallbackQuery, state: FSMContext):
         await callback.answer("⚠️ Ошибка сервера, попробуйте позже", show_alert=True)
 
 
+@router.callback_query(StateFilter(UserState.process_time_change))
+async def time_change(callback_query: CallbackQuery, state: FSMContext):
+    if callback_query.data == "change_time":
+        user_data = await state.get_data()
+        sheet_id = user_data.get('sheet_id')
+        target_cell = user_data.get('target_cell')
+        await clear_cell(sheet_id, target_cell)
+        await callback_query.message.answer("Запись успешно удалена!", reply_markup = keyboard)
+        await state.set_state(UserState.slot_day)
+         
+        # Получаем sheet_id из состояния или базы данных
+        user_data = await state.get_data()
+        sheet_id = user_data.get('sheet_id')
+        
+        # Получаем клавиатуру с кнопками
+        keyboard = await check_empty_cells(sheet_id)
+        
+        if keyboard:
+                await callback_query.message.answer(
+                "Выберите дату для записи",
+                reply_markup=keyboard
+                )
+                
+        else:
+                await callback_query.message.answer("Нет доступного времени")
 
+        await callback_query.answer()
+
+    elif callback_query.data == "delete_time":
+        user_data = await state.get_data()
+        sheet_id = user_data.get('sheet_id')
+        target_cell = user_data.get('target_cell')
+        
+        await  clear_cell(sheet_id, target_cell)
+        keyboard = InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="Новая запись", callback_data="change_time")]
+        ])
+        await callback_query.message.answer("Запись успешно удалена!", reply_markup = keyboard)
+
+        await callback_query.answer()
+    
 
 
 
