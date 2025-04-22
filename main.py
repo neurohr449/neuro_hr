@@ -107,7 +107,7 @@ async def chat_command(message: Message, state: FSMContext):
     )
 
 async def check_survey_completion(chat_id: int, state: FSMContext):
-    await asyncio.sleep(3600)  # Ждем 1 час
+    await asyncio.sleep(60)  # Ждем 1 час
     
     data = await state.get_data()
     if not data.get("survey_completed", False):
@@ -185,6 +185,7 @@ async def pd5(callback_query: CallbackQuery, state: FSMContext):
     ])
     await callback_query.message.answer(f"{user_data.get('pd5')}", reply_markup = keyboard)
     await state.set_state(UserState.pd5)
+    await state.update_data(survey_completed = True)
     await callback_query.answer()
 
 
