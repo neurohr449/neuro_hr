@@ -440,7 +440,7 @@ async def process_time_selection(callback: CallbackQuery, state: FSMContext):
 
         # 7. Подготовка данных для записи
         record_text = (
-            f"{user_data.get('date_value')} {user_data.get('time_value')} #{user_data.get('response')}\n\n"
+            f"{date_value} {time_value} #{user_data.get('response')}\n\n"
             f"Вакансия: {user_data.get('job_name')}\n\n"
             f"ФИО: {user_data.get('user_fio', 'Без имени')}\n"
             f"ТГ: @{callback.from_user.username}\n"
@@ -469,7 +469,7 @@ async def process_time_selection(callback: CallbackQuery, state: FSMContext):
         
         # 9. Отправляем подтверждение пользователю
         await callback.message.edit_text(
-            f"💖 Спасибо, что выбрали нас! Ждем Вас в {date_value} в #{time_value} на собеседование, ссылку пришлем за пару минут до его начала.\n\n"
+            f"💖 Спасибо, что выбрали нас! Ждем Вас в {date_value} в {time_value} на собеседование, ссылку пришлем за пару минут до его начала.\n\n"
             "Если у вас изменились планы, то не забудьте нажать на кнопку \"Изменить время\" или \"Удалить запись\", если вовсе передумали.", reply_markup=keyboard
         )
         chat_id = user_data.get('chat_id')
