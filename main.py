@@ -518,12 +518,12 @@ async def process_time_selection(callback: CallbackQuery, state: FSMContext):
                 ])
         
         # 9. Отправляем подтверждение пользователю
-        # await callback.message.edit_text(
-        #     f"💖 Спасибо, что выбрали нас! Ждем Вас в {date_value} в {time_value} на собеседование, ссылку пришлем за пару минут до его начала.\n\n"
-        #     "Если у вас изменились планы, то не забудьте нажать на кнопку \"Изменить время\" или \"Удалить запись\", если вовсе передумали.", reply_markup=keyboard
-        # )
+        await callback.message.edit_text(
+            f"💖 Спасибо, что выбрали нас! Ждем Вас в {date_value} в {time_value} на собеседование, ссылку пришлем за пару минут до его начала.\n\n"
+            "Если у вас изменились планы, то не забудьте нажать на кнопку \"Изменить время\" или \"Удалить запись\", если вовсе передумали.", reply_markup=keyboard
+        )
 
-        await callback.message.edit_text(user_data.get('text_4'))
+        
         chat_id = user_data.get('chat_id')
         await state.set_state(UserState.process_time_change)
         
@@ -541,8 +541,7 @@ async def process_time_selection(callback: CallbackQuery, state: FSMContext):
         video_note = user_data.get('video_note')
         if video_note:
             await bot.send_video_note(chat_id=chat_id,
-                                video_note=video_note,
-                                caption="Видео от кандидата"
+                                video_note=video_note
                                 )
         
         # 10. Сохраняем данные в Google Sheets (асинхронно)
