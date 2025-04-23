@@ -77,7 +77,7 @@ async def command_start_handler(message: Message, command: CommandObject, state:
     if sheet_id:
         try:
             await state.update_data(sheet_id=sheet_id)
-            text = "👋 Добро пожаловать в наш чат-бот! Мы рады, что вы здесь. \n\n🌟В этом боте вы сможете подробнее узнать про нашу компанию, вакансию, записаться на собеседование, пройти обучение и устроиться на работу 🍀💬⚠️ \n\nЕсли бот где-то не отвечает, подождите до 30 секунд, попробуйте повторно нажать на нужную кнопку или написать ее текстом, через 60 секунд выйти из бота и зайти обратно, а так же можете нажать на эту команду /start для запуска бота с начала."
+            text = "👋 Добро пожаловать в наш чат-бот! Мы рады, что вы здесь. \n\n🌟В этом боте вы сможете подробнее узнать про нашу компанию, вакансию и записаться на собеседование 🍀💬⚠️ \n\nЕсли бот где-то не отвечает, подождите до 30 секунд, попробуйте повторно нажать на нужную кнопку или написать ее текстом, через 60 секунд выйти из бота и зайти обратно, а так же можете нажать на эту команду /start для запуска бота с начала."
             keyboard = InlineKeyboardMarkup(inline_keyboard=[
             [InlineKeyboardButton(text="Поехали", callback_data="next")]
             ])
@@ -86,8 +86,10 @@ async def command_start_handler(message: Message, command: CommandObject, state:
         except Exception as e:
             await message.answer(f"❌ Ошибка при загрузке данных: {str(e)}", reply_markup = FAIL_KEYBOARD)
     else:
-        await message.answer("👋 Здравствуйте. Запустите бота по уникальной ссылке!\n\nСсылка для тестов: https://t.me/pnhr_test_bot?start=1dM69zoKynsuN38Z7p2XtS09TXufwmo3cZL6bHi_zcyw")
+        await message.answer("👋 Здравствуйте. Запустите бота по уникальной ссылке!")
 
+
+#\n\nСсылка для тестов: https://t.me/pnhr_test_bot?start=1dM69zoKynsuN38Z7p2XtS09TXufwmo3cZL6bHi_zcyw
 
 
 @router.callback_query(lambda c: c.data == 'notification')
@@ -390,7 +392,7 @@ async def q9(message: Message, state: FSMContext):
     else:
         await state.set_state(UserState.q10)
         await process_answers(message, state)
-        
+
 @router.message(StateFilter(UserState.q9))
 async def q10(message: Message, state: FSMContext):
     ans1 = message.text
@@ -443,7 +445,7 @@ async def process_answers(message: Message, state: FSMContext):
                             response_2=response_2,
                             user_qa = user_qa
                             )
-    await message.answer(f"{response_score}\n\n{response}\n\n {response_2}")
+    # await message.answer(f"{response_score}\n\n{response}\n\n {response_2}")
     if response == "Собеседование":
         await state.set_state(UserState.result_yes)
         await write_to_google_sheet(
@@ -451,7 +453,8 @@ async def process_answers(message: Message, state: FSMContext):
              username = message.from_user.username,
              first_name=message.from_user.first_name,
              status=response,
-             gpt_response=response_2
+             gpt_response=response_2,
+             qa_data=user_qa
              )
         text_3 = user_data.get('text_3')
         await message.answer(text=text_3)
@@ -468,7 +471,8 @@ async def process_answers(message: Message, state: FSMContext):
           username=message.from_user.username,
           first_name=message.from_user.first_name,
           status=response,  
-          gpt_response=response_2
+          gpt_response=response_2,
+          qa_data=user_qa
           )
     
           if success:
