@@ -404,28 +404,32 @@ def parse_interview_datetime(date_str: str, time_str: str) -> datetime:
     return date_obj.replace(tzinfo=MOSCOW_TZ)  
 
 async def get_job_data(sheet_id, state: FSMContext,):
-    range_name = "A2:AD2"
+    range_name = "A2:AH2"
     value = await get_google_sheet_data(sheet_id, range_name)
     row_data = value[0]
     await state.update_data(
-        pd1=row_data[6],
-        pd2=row_data[7],
-        pd3=row_data[8],
-        pd4=row_data[9],
-        pd5=row_data[10],
-        q1=row_data[11],
-        q2=row_data[12],
-        q3=row_data[13],
-        q4=row_data[14],
-        q5=row_data[15],
-        q6=row_data[16],
-        q7=row_data[17],
-        q8=row_data[18],
-        q9=row_data[19],
-        q10=row_data[20],
-        portrait=row_data[26],
-        job_text=row_data[27],
-        job_name=row_data[5],
-        chat_id=row_data[29]
+        pd1=row_data[7],
+        pd2=row_data[8],
+        pd3=row_data[9],
+        pd4=row_data[10],
+        pd5=row_data[11],
+        q1=row_data[12],
+        q2=row_data[13],
+        q3=row_data[14],
+        q4=row_data[15],
+        q5=row_data[16],
+        q6=row_data[17],
+        q7=row_data[18],
+        q8=row_data[19],
+        q9=row_data[20],
+        q10=row_data[21],
+        portrait=row_data[27],
+        job_text=row_data[28],
+        job_name=row_data[6],
+        chat_id=row_data[1],
+        text_1=row_data[30],
+        text_2=row_data[31],
+        text_3=row_data[32],
+        text_4=row_data[33]
         )
     

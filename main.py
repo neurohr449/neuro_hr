@@ -93,35 +93,35 @@ async def command_start_handler(message: Message, command: CommandObject, state:
 async def notification_cb_handler(callback_query: CallbackQuery, state: FSMContext) -> None:
     current_state = await state.get_state()
 
-    if current_state == UserState.welcome.state:
+    if current_state == UserState.pd1.state:
          await pd1(callback_query, state)
-    elif current_state == UserState.pd1.state:
-         await pd2(callback_query, state)
     elif current_state == UserState.pd2.state:
-         await pd3(callback_query, state)
+         await pd2(callback_query, state)
     elif current_state == UserState.pd3.state:
-         await pd4(callback_query, state)
+         await pd3(callback_query, state)
     elif current_state == UserState.pd4.state:
-         await pd5(callback_query, state)
+         await pd4(callback_query, state)
     elif current_state == UserState.pd5.state:
-         await q1(callback_query, state)
+         await pd5(callback_query, state)
     elif current_state == UserState.q1.state:
-         await q2(callback_query.message, state)
+         await q1(callback_query.message, state)
     elif current_state == UserState.q2.state:
-         await q3(callback_query.message, state)
+         await q2(callback_query.message, state)
     elif current_state == UserState.q3.state:
-         await q4(callback_query.message, state)
+         await q3(callback_query.message, state)
     elif current_state == UserState.q4.state:
-         await q5(callback_query.message, state)
+         await q4(callback_query.message, state)
     elif current_state == UserState.q5.state:
-         await q6(callback_query.message, state)
+         await q5(callback_query.message, state)
     elif current_state == UserState.q6.state:
-         await q7(callback_query.message, state)
+         await q6(callback_query.message, state)
     elif current_state == UserState.q7.state:
-         await q8(callback_query.message, state)
+         await q7(callback_query.message, state)
     elif current_state == UserState.q8.state:
-         await q9(callback_query.message, state)
+         await q8(callback_query.message, state)
     elif current_state == UserState.q9.state:
+         await q9(callback_query.message, state)
+    elif current_state == UserState.q10.state:
          await q10(callback_query.message, state)
     
 
