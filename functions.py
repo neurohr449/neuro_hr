@@ -426,6 +426,7 @@ async def get_job_data(sheet_id, state: FSMContext,):
         portrait=row_data[27],
         job_text=row_data[28],
         job_name=row_data[6],
+        score = row_data[4],
         chat_id=row_data[1],
         text_1=row_data[30],
         text_2=row_data[31],

@@ -221,7 +221,7 @@ async def pd5(callback_query: CallbackQuery, state: FSMContext):
 @router.callback_query(StateFilter(UserState.pd5))
 async def q1(callback_query: CallbackQuery, state: FSMContext):
     user_data = await state.get_data()
-    text = "Работа с высоким доходом и крутой командой? Всё просто!\n\n1️⃣Пройдите короткий тест — всего 5-10 минут.\n\n2️⃣Ответьте, пожалуйста на 10 вопросов, своими словами обычным текстом на 1-3 предложения, как понимаете вопрос — без сложных текстов.\n\n3️⃣В конце — запишите кружок в Telegram (30-60 секунд), просто чтобы познакомиться!\n\n4️⃣Запишитесь на собеседование в два клика через чат-бота.🔥Все быстро, просто и без стресса!"
+    text = user_data.get('text_1')
     await callback_query.message.answer(f"{text}")
     await callback_query.answer()
     await callback_query.message.answer(f"{user_data.get('q1')}")
@@ -309,15 +309,19 @@ async def process_answers(message: Message, state: FSMContext):
     if message.video:
          video=message.video.file_id
          await state.update_data(video=video)
+         ans10 = "Видео от кандидата получено"
     if message.video_note:
          video_note = message.video_note.file_id
          await state.update_data(video_note=video_note)
-    ans10 = message.text
+         ans10 = "Видео от кандидата получено"
+    if not ans10:  
+        ans10 = message.text
     await state.update_data(ans10=ans10)
-    text = "Спасибо за прохождение тестирования! \n\n📝В данный момент идет его проверка, и это займет всего 1 минуту ⏳.\n\nПожалуйста, подождите немного, и мы сообщим вам результат.\n\n❗️На другие кнопки пока идет проверка нажимать не нужно.\n\nВаше терпение очень ценится! 🙏"
+    user_data = await state.get_data()
+    text = user_data.get('text_2')
     await message.answer(f"{text}")
     await state.update_data(survey_completed = True)
-    user_data = await state.get_data()
+    
     sheet_id = user_data.get('sheet_id')
     promt = f"Ты HR менеджер с опытом более 30 лет в найме, поиске и обучении персонала, с учетом всего своего опыта, чтобы в будущем подобрать кандидата для нашей вакансии: {user_data.get('job_name')}, тебе надо дать оценку по десятибальной шкале для каждого ответа на вопрос и выдать общий балл по кандидату. Не нужно давать комментарий или писать любые буквы, нужно строго только одно число с общим баллом. (Обязательно без спецсимволов, например точки). Для принятия решения сравни текст вакансии {user_data.get('job_text')}, портрет кандидата {user_data.get('portrait')} и вопросы и ответы пользователя который надо оценить и написать. Вопрос 1: {user_data.get('q1')}, ответ: {user_data.get('ans1')}; Вопрос 2: {user_data.get('q2')}, ответ: {user_data.get('ans2')}; Вопрос 3: {user_data.get('q3')}, ответ: {user_data.get('ans3')}; Вопрос 4: {user_data.get('q4')}, ответ: {user_data.get('ans4')}; Вопрос 5: {user_data.get('q5')}, ответ: {user_data.get('ans5')}; Вопрос 6: {user_data.get('q6')}, ответ: {user_data.get('ans6')}; Вопрос 7:{user_data.get('q7')}, ответ: {user_data.get('ans7')}; Вопрос 8: {user_data.get('q8')}, ответ: {user_data.get('ans8')}; Вопрос 9: {user_data.get('q9')}, ответ: {user_data.get('ans9')}; Вопрос 10:{user_data.get('q10')}, ответ: {user_data.get('ans10')}."
     
@@ -326,7 +330,7 @@ async def process_answers(message: Message, state: FSMContext):
     user_qa = f"Вопрос 1: {user_data.get('q1')}, ответ: {user_data.get('ans1')}; Вопрос 2: {user_data.get('q2')}, ответ: {user_data.get('ans2')}; Вопрос 3: {user_data.get('q3')}, ответ: {user_data.get('ans3')}; Вопрос 4: {user_data.get('q4')}, ответ: {user_data.get('ans4')}; Вопрос 5: {user_data.get('q5')}, ответ: {user_data.get('ans5')}; Вопрос 6: {user_data.get('q6')}, ответ: {user_data.get('ans6')}; Вопрос 7:{user_data.get('q7')}, ответ: {user_data.get('ans7')}; Вопрос 8: {user_data.get('q8')}, ответ: {user_data.get('ans8')}; Вопрос 9: {user_data.get('q9')}, ответ: {user_data.get('ans9')}; Вопрос 10:{user_data.get('q10')}, ответ: {user_data.get('ans10')}"
     response_score = await get_chatgpt_response(promt)
     response_2 = await get_chatgpt_response(promt_2)
-    target_score = 25
+    target_score = user_data.get('score')
     if int(response_score) >= target_score:
         response = "Собеседование"
     else:
@@ -346,8 +350,8 @@ async def process_answers(message: Message, state: FSMContext):
              status=response,
              gpt_response=response_2
              )
-        
-        await message.answer("Ты молодец! 🎉 Ты прошел тестирование, а теперь можешь записаться на собеседование. Просто следуй инструкциям чат-бота: ответь на пару вопросов и выбери удобную дату и время для собеседования. 🚀")
+        text_3 = user_data.get('text_3')
+        await message.answer(text=text_3)
         await message.answer("Пожалуйста напишите ваше ФИО.")
     
     
@@ -420,7 +424,7 @@ async def process_date_selection(callback: CallbackQuery, state: FSMContext):
     keyboard = await get_available_times(sheet_id, selected_date_cell)
     
     if keyboard:
-        await callback.message.answer(
+        await callback.message.edit_text(
             "Доступное время для записи:",
             reply_markup=keyboard
         )
@@ -514,10 +518,12 @@ async def process_time_selection(callback: CallbackQuery, state: FSMContext):
                 ])
         
         # 9. Отправляем подтверждение пользователю
-        await callback.message.edit_text(
-            f"💖 Спасибо, что выбрали нас! Ждем Вас в {date_value} в {time_value} на собеседование, ссылку пришлем за пару минут до его начала.\n\n"
-            "Если у вас изменились планы, то не забудьте нажать на кнопку \"Изменить время\" или \"Удалить запись\", если вовсе передумали.", reply_markup=keyboard
-        )
+        # await callback.message.edit_text(
+        #     f"💖 Спасибо, что выбрали нас! Ждем Вас в {date_value} в {time_value} на собеседование, ссылку пришлем за пару минут до его начала.\n\n"
+        #     "Если у вас изменились планы, то не забудьте нажать на кнопку \"Изменить время\" или \"Удалить запись\", если вовсе передумали.", reply_markup=keyboard
+        # )
+
+        await callback.message.edit_text(user_data.get('text_4'))
         chat_id = user_data.get('chat_id')
         await state.set_state(UserState.process_time_change)
         
@@ -534,7 +540,7 @@ async def process_time_selection(callback: CallbackQuery, state: FSMContext):
         
         video_note = user_data.get('video_note')
         if video_note:
-            await bot.send_video(chat_id=chat_id,
+            await bot.send_video_note(chat_id=chat_id,
                                 video_note=video_note,
                                 caption="Видео от кандидата"
                                 )
@@ -618,7 +624,7 @@ async def time_change(callback_query: CallbackQuery, state: FSMContext):
     
 ##########################################################################################################################################################################################################
 async def check_survey_completion(chat_id: int, state: FSMContext):
-    await asyncio.sleep(30)  # Ждем 1 час
+    await asyncio.sleep(3600)  # Ждем 1 час
     
     data = await state.get_data()
     if not data.get("survey_completed", False):
