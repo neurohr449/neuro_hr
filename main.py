@@ -188,44 +188,98 @@ async def pd1(callback_query: CallbackQuery, state: FSMContext):
 
 @router.callback_query(StateFilter(UserState.pd1))
 async def pd2(callback_query: CallbackQuery, state: FSMContext):
+    
     user_data = await state.get_data()
-    keyboard = InlineKeyboardMarkup(inline_keyboard=[
-    [InlineKeyboardButton(text="Продолжить", callback_data="next")]
-    ])
-    await callback_query.message.answer(f"{user_data.get('pd2')}", reply_markup = keyboard)
-    await state.set_state(UserState.pd2)
-    await callback_query.answer()
+    match = re.search(TELEGRAM_VIDEO_PATTERN, user_data.get('video_2'))
+    if match:           
+        keyboard = InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="Продолжить", callback_data="next")]
+        ])
+        await callback_query.message.answer_video(video=user_data.get('video_2'), 
+                                                    caption= f"{user_data.get('pd2')}",
+                                                    reply_markup = keyboard
+                                                    )
+        await state.set_state(UserState.pd2)
+        await callback_query.answer()
+    else:
+        keyboard = InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="Продолжить", callback_data="next")]
+        ])
+        await callback_query.message.answer(f"{user_data.get('pd2')}", reply_markup = keyboard)
+        await state.set_state(UserState.pd2)
+        await callback_query.answer()
 
 @router.callback_query(StateFilter(UserState.pd2))
 async def pd3(callback_query: CallbackQuery, state: FSMContext):
     user_data = await state.get_data()
-    keyboard = InlineKeyboardMarkup(inline_keyboard=[
-    [InlineKeyboardButton(text="Продолжить", callback_data="next")]
-    ])
-    await callback_query.message.answer(f"{user_data.get('pd3')}", reply_markup = keyboard)
-    await state.set_state(UserState.pd3)
-    await callback_query.answer()
+
+    match = re.search(TELEGRAM_VIDEO_PATTERN, user_data.get('video_3'))
+    if match:           
+        keyboard = InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="Продолжить", callback_data="next")]
+        ])
+        await callback_query.message.answer_video(video=user_data.get('video_3'), 
+                                                    caption= f"{user_data.get('pd3')}",
+                                                    reply_markup = keyboard
+                                                    )
+        await state.set_state(UserState.pd3)
+        await callback_query.answer()
+    else: 
+        keyboard = InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="Продолжить", callback_data="next")]
+        ])
+        await callback_query.message.answer(f"{user_data.get('pd3')}", reply_markup = keyboard)
+        await state.set_state(UserState.pd3)
+        await callback_query.answer()
 
 @router.callback_query(StateFilter(UserState.pd3))
 async def pd4(callback_query: CallbackQuery, state: FSMContext):
     user_data = await state.get_data()
-    keyboard = InlineKeyboardMarkup(inline_keyboard=[
-    [InlineKeyboardButton(text="Продолжить", callback_data="next")]
-    ])
-    await callback_query.message.answer(f"{user_data.get('pd4')}", reply_markup = keyboard)
-    await state.set_state(UserState.pd4)
-    await callback_query.answer()
+
+    match = re.search(TELEGRAM_VIDEO_PATTERN, user_data.get('video_4'))
+    if match:           
+        keyboard = InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="Продолжить", callback_data="next")]
+        ])
+        await callback_query.message.answer_video(video=user_data.get('video_4'), 
+                                                    caption= f"{user_data.get('pd4')}",
+                                                    reply_markup = keyboard
+                                                    )
+        await state.set_state(UserState.pd4)
+        await callback_query.answer()
+    else:
+       
+        keyboard = InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="Продолжить", callback_data="next")]
+        ])
+        await callback_query.message.answer(f"{user_data.get('pd4')}", reply_markup = keyboard)
+        await state.set_state(UserState.pd4)
+        await callback_query.answer()
 
 @router.callback_query(StateFilter(UserState.pd4))
 async def pd5(callback_query: CallbackQuery, state: FSMContext):
     user_data = await state.get_data()
-    keyboard = InlineKeyboardMarkup(inline_keyboard=[
-    [InlineKeyboardButton(text="Продолжить", callback_data="next")]
-    ])
-    await callback_query.message.answer(f"{user_data.get('pd5')}", reply_markup = keyboard)
-    await state.set_state(UserState.pd5)
-    
-    await callback_query.answer()
+
+    match = re.search(TELEGRAM_VIDEO_PATTERN, user_data.get('video_5'))
+    if match:           
+        keyboard = InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="Продолжить", callback_data="next")]
+        ])
+        await callback_query.message.answer_video(video=user_data.get('video_5'), 
+                                                    caption= f"{user_data.get('pd5')}",
+                                                    reply_markup = keyboard
+                                                    )
+        await state.set_state(UserState.pd5)
+        await callback_query.answer()
+    else:
+        
+        keyboard = InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="Продолжить", callback_data="next")]
+        ])
+        await callback_query.message.answer(f"{user_data.get('pd5')}", reply_markup = keyboard)
+        await state.set_state(UserState.pd5)
+        
+        await callback_query.answer()
 
 
 
@@ -264,6 +318,8 @@ async def q4(message: Message, state: FSMContext):
     ans1 = message.text
     await state.update_data(ans3=ans1)
     user_data = await state.get_data()
+    text = user_data.get('q4')
+    print(text)
     await message.answer(f"{user_data.get('q4')}")
     await state.set_state(UserState.q4)
 
