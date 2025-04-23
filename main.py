@@ -85,16 +85,47 @@ async def command_start_handler(message: Message, command: CommandObject, state:
         except Exception as e:
             await message.answer(f"❌ Ошибка при загрузке данных: {str(e)}", reply_markup = FAIL_KEYBOARD)
     else:
-        await message.answer("👋 Добрый день. Запустите бота по уникальной ссылке!\n\nСсылка для тестов: https://t.me/pnhr_test_bot?start=1dM69zoKynsuN38Z7p2XtS09TXufwmo3cZL6bHi_zcyw")
+        await message.answer("👋 Здравствуйте. Запустите бота по уникальной ссылке!\n\nСсылка для тестов: https://t.me/pnhr_test_bot?start=1dM69zoKynsuN38Z7p2XtS09TXufwmo3cZL6bHi_zcyw")
 
 
 
-# @router.message(Command("chat"))
-# async def chat_command(message: Message, state: FSMContext):
-#     chat_id = "-4636369368"
-#     text = "Test"
-#     await bot.send_message(chat_id, text)
-#     print (chat_id)
+@router.callback_query(lambda c: c.data == 'notification')
+async def notification_cb_handler(callback_query: CallbackQuery, state: FSMContext) -> None:
+    current_state = await state.get_state()
+
+    if current_state == UserState.welcome.state:
+         await pd1(callback_query, state)
+    elif current_state == UserState.pd1.state:
+         await pd2(callback_query, state)
+    elif current_state == UserState.pd2.state:
+         await pd3(callback_query, state)
+    elif current_state == UserState.pd3.state:
+         await pd4(callback_query, state)
+    elif current_state == UserState.pd4.state:
+         await pd5(callback_query, state)
+    elif current_state == UserState.pd5.state:
+         await q1(callback_query, state)
+    elif current_state == UserState.q1.state:
+         await q2(callback_query.message, state)
+    elif current_state == UserState.q2.state:
+         await q3(callback_query.message, state)
+    elif current_state == UserState.q3.state:
+         await q4(callback_query.message, state)
+    elif current_state == UserState.q4.state:
+         await q5(callback_query.message, state)
+    elif current_state == UserState.q5.state:
+         await q6(callback_query.message, state)
+    elif current_state == UserState.q6.state:
+         await q7(callback_query.message, state)
+    elif current_state == UserState.q7.state:
+         await q8(callback_query.message, state)
+    elif current_state == UserState.q8.state:
+         await q9(callback_query.message, state)
+    elif current_state == UserState.q9.state:
+         await q10(callback_query.message, state)
+    
+
+
 
 @router.message(Command("get_chat_id"))
 async def chat_command(message: Message, state: FSMContext):
@@ -106,12 +137,6 @@ async def chat_command(message: Message, state: FSMContext):
         parse_mode="HTML"
     )
 
-async def check_survey_completion(chat_id: int, state: FSMContext):
-    await asyncio.sleep(60)  # Ждем 1 час
-    
-    data = await state.get_data()
-    if not data.get("survey_completed", False):
-        await bot.send_message(chat_id, "Привет! 👋 Мы заметили, что ты начал записываться на собеседование, но не завершил процесс. Заканчивай запись и получи шанс пройти отбор на классную вакансию!")
 
 
 @router.callback_query(StateFilter(UserState.welcome))
@@ -185,7 +210,7 @@ async def pd5(callback_query: CallbackQuery, state: FSMContext):
     ])
     await callback_query.message.answer(f"{user_data.get('pd5')}", reply_markup = keyboard)
     await state.set_state(UserState.pd5)
-    await state.update_data(survey_completed = True)
+    
     await callback_query.answer()
 
 
@@ -284,10 +309,14 @@ async def process_answers(message: Message, state: FSMContext):
     if message.video:
          video=message.video.file_id
          await state.update_data(video=video)
+    if message.video_note:
+         video_note = message.video_note.file_id
+         await state.update_data(video_note=video_note)
     ans10 = message.text
     await state.update_data(ans10=ans10)
     text = "Спасибо за прохождение тестирования! \n\n📝В данный момент идет его проверка, и это займет всего 1 минуту ⏳.\n\nПожалуйста, подождите немного, и мы сообщим вам результат.\n\n❗️На другие кнопки пока идет проверка нажимать не нужно.\n\nВаше терпение очень ценится! 🙏"
     await message.answer(f"{text}")
+    await state.update_data(survey_completed = True)
     user_data = await state.get_data()
     sheet_id = user_data.get('sheet_id')
     promt = f"Ты HR менеджер с опытом более 30 лет в найме, поиске и обучении персонала, с учетом всего своего опыта, чтобы в будущем подобрать кандидата для нашей вакансии: {user_data.get('job_name')}, тебе надо дать оценку по десятибальной шкале для каждого ответа на вопрос и выдать общий балл по кандидату. Не нужно давать комментарий или писать любые буквы, нужно строго только одно число с общим баллом. (Обязательно без спецсимволов, например точки). Для принятия решения сравни текст вакансии {user_data.get('job_text')}, портрет кандидата {user_data.get('portrait')} и вопросы и ответы пользователя который надо оценить и написать. Вопрос 1: {user_data.get('q1')}, ответ: {user_data.get('ans1')}; Вопрос 2: {user_data.get('q2')}, ответ: {user_data.get('ans2')}; Вопрос 3: {user_data.get('q3')}, ответ: {user_data.get('ans3')}; Вопрос 4: {user_data.get('q4')}, ответ: {user_data.get('ans4')}; Вопрос 5: {user_data.get('q5')}, ответ: {user_data.get('ans5')}; Вопрос 6: {user_data.get('q6')}, ответ: {user_data.get('ans6')}; Вопрос 7:{user_data.get('q7')}, ответ: {user_data.get('ans7')}; Вопрос 8: {user_data.get('q8')}, ответ: {user_data.get('ans8')}; Вопрос 9: {user_data.get('q9')}, ответ: {user_data.get('ans9')}; Вопрос 10:{user_data.get('q10')}, ответ: {user_data.get('ans10')}."
@@ -503,6 +532,13 @@ async def process_time_selection(callback: CallbackQuery, state: FSMContext):
                                 caption="Видео от кандидата"
                                 )
         
+        video_note = user_data.get('video_note')
+        if video_note:
+            await bot.send_video(chat_id=chat_id,
+                                video_note=video_note,
+                                caption="Видео от кандидата"
+                                )
+        
         # 10. Сохраняем данные в Google Sheets (асинхронно)
         success = await write_to_google_sheet(
             sheet_id=sheet_id,
@@ -581,8 +617,19 @@ async def time_change(callback_query: CallbackQuery, state: FSMContext):
         await callback_query.answer()
     
 ##########################################################################################################################################################################################################
+async def check_survey_completion(chat_id: int, state: FSMContext):
+    await asyncio.sleep(30)  # Ждем 1 час
+    
+    data = await state.get_data()
+    if not data.get("survey_completed", False):
+        keyboard = InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="Продолжить", callback_data="notification")]
+        ])
+        await bot.send_message(chat_id, "Привет! 👋 Мы заметили, что ты начал записываться на собеседование, но не завершил процесс. Заканчивай запись и получи шанс пройти отбор на классную вакансию!",reply_markup=keyboard)
+
+
 async def send_reminder(chat_id: int, text: str):
-    await Bot.get_current().send_message(chat_id, text)
+    await bot.send_message(chat_id, text)
 
 
 async def send_reminder_at_time(chat_id: int, time_utc: datetime, text: str):
