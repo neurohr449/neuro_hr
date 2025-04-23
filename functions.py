@@ -404,7 +404,7 @@ def parse_interview_datetime(date_str: str, time_str: str) -> datetime:
     return date_obj.replace(tzinfo=MOSCOW_TZ)  
 
 async def get_job_data(sheet_id, state: FSMContext,):
-    range_name = "A2:AH2"
+    range_name = "A2:AG2"
     value = await get_google_sheet_data(sheet_id, range_name)
     row_data = value[0]
     await state.update_data(
@@ -430,7 +430,6 @@ async def get_job_data(sheet_id, state: FSMContext,):
         chat_id=row_data[1],
         text_1=row_data[30],
         text_2=row_data[31],
-        text_3=row_data[32],
-        text_4=row_data[33]
+        text_3=row_data[32]
         )
     
