@@ -331,7 +331,7 @@ async def process_answers(message: Message, state: FSMContext):
     response_score = await get_chatgpt_response(promt)
     response_2 = await get_chatgpt_response(promt_2)
     target_score = user_data.get('score')
-    if int(response_score) >= target_score:
+    if int(response_score) >= int(target_score):
         response = "Собеседование"
     else:
         response = "Отказ"
