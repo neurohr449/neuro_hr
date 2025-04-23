@@ -430,6 +430,11 @@ async def get_job_data(sheet_id, state: FSMContext,):
         chat_id=row_data[1],
         text_1=row_data[30],
         text_2=row_data[31],
-        text_3=row_data[32]
+        text_3=row_data[32],
+        video_1=row_data[22],
+        video_2=row_data[23],
+        video_3=row_data[24],
+        video_4=row_data[25],
+        video_5=row_data[26]
         )
     
