@@ -379,6 +379,7 @@ async def q10(message: Message, state: FSMContext):
 
 @router.message(StateFilter(UserState.q10))
 async def process_answers(message: Message, state: FSMContext):
+    ans10 = None
     if message.video:
          video=message.video.file_id
          await state.update_data(video=video)
