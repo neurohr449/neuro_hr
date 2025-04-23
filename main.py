@@ -331,65 +331,96 @@ async def q5(message: Message, state: FSMContext):
     ans1 = message.text
     await state.update_data(ans4=ans1)
     user_data = await state.get_data()
-    await message.answer(f"{user_data.get('q5')}")
-    await state.set_state(UserState.q5)
+    text = user_data.get('q5')
+    if text:
+        await message.answer(f"{user_data.get('q5')}")
+        await state.set_state(UserState.q5)
+    else:
+        await state.set_state(UserState.q10)
+        await process_answers(message, state)
 
 @router.message(StateFilter(UserState.q5))
 async def q6(message: Message, state: FSMContext):
     ans1 = message.text
     await state.update_data(ans5=ans1)
     user_data = await state.get_data()
-    await message.answer(f"{user_data.get('q6')}")
-    await state.set_state(UserState.q6)
+    text = user_data.get('q6')
+    if text:
+        await message.answer(f"{user_data.get('q6')}")
+        await state.set_state(UserState.q6)
+    else:
+        await state.set_state(UserState.q10)
+        await process_answers(message, state)    
 
 @router.message(StateFilter(UserState.q6))
 async def q7(message: Message, state: FSMContext):
     ans1 = message.text
     await state.update_data(ans6=ans1)
     user_data = await state.get_data()
-    await message.answer(f"{user_data.get('q7')}")
-    await state.set_state(UserState.q7)
+    text = user_data.get('q7')
+    if text:
+        await message.answer(f"{user_data.get('q7')}")
+        await state.set_state(UserState.q7)
+    else:
+        await state.set_state(UserState.q10)
+        await process_answers(message, state)
 
 @router.message(StateFilter(UserState.q7))
 async def q8(message: Message, state: FSMContext):
     ans1 = message.text
     await state.update_data(ans7=ans1)
     user_data = await state.get_data()
-    await message.answer(f"{user_data.get('q8')}")
-    await state.set_state(UserState.q8)
+    text = user_data.get('q8')
+    if text:
+        await message.answer(f"{user_data.get('q8')}")
+        await state.set_state(UserState.q8)
+    else:
+        await state.set_state(UserState.q10)
+        await process_answers(message, state)
 
 @router.message(StateFilter(UserState.q8))
 async def q9(message: Message, state: FSMContext):
     ans1 = message.text
     await state.update_data(ans8=ans1)
     user_data = await state.get_data()
-    await message.answer(f"{user_data.get('q9')}")
-    await state.set_state(UserState.q9)
-
+    text = user_data.get('q9')
+    if text:
+        await message.answer(f"{user_data.get('q9')}")
+        await state.set_state(UserState.q9)
+    else:
+        await state.set_state(UserState.q10)
+        await process_answers(message, state)
+        
 @router.message(StateFilter(UserState.q9))
 async def q10(message: Message, state: FSMContext):
     ans1 = message.text
     await state.update_data(ans9=ans1)
     user_data = await state.get_data()
-    await message.answer(f"{user_data.get('q10')}")
-    await state.set_state(UserState.q10)
-
+    text = user_data.get('q10')
+    if text:
+        await message.answer(f"{user_data.get('q10')}")
+        await state.set_state(UserState.q10)
+    else:
+        await state.set_state(UserState.q10)
+        await process_answers(message, state)
 
 
 
 @router.message(StateFilter(UserState.q10))
 async def process_answers(message: Message, state: FSMContext):
-    ans10 = None
+    
     if message.video:
          video=message.video.file_id
          await state.update_data(video=video)
          ans10 = "Видео от кандидата получено"
-    if message.video_note:
+    elif message.video_note:
          video_note = message.video_note.file_id
          await state.update_data(video_note=video_note)
          ans10 = "Видео от кандидата получено"
-    if not ans10:  
+    elif message.text:  
         ans10 = message.text
+    else:
+        ans10 = "Неизвестный формат сообщения"
     await state.update_data(ans10=ans10)
     user_data = await state.get_data()
     text = user_data.get('text_2')
