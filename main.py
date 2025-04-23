@@ -31,6 +31,7 @@ FAIL_KEYBOARD = InlineKeyboardMarkup(inline_keyboard=[
 client = AsyncOpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 MOSCOW_TZ = ZoneInfo("Europe/Moscow")
 SERVER_TZ = ZoneInfo("UTC")
+TELEGRAM_VIDEO_PATTERN = r'https://t\.me/'
 
 # from auth import BOT_TOKEN
 bot = Bot(token=BOT_TOKEN, default=DefaultBotProperties(
@@ -161,12 +162,22 @@ async def pd1(callback_query: CallbackQuery, state: FSMContext):
             if user_check != False:
                 await get_job_data(sheet_id, state)
                 user_data = await state.get_data()
-                keyboard = InlineKeyboardMarkup(inline_keyboard=[
-                [InlineKeyboardButton(text="Продолжить", callback_data="next")]
-                ])
-                await callback_query.message.answer(f"{user_data.get('pd1')}", reply_markup = keyboard)
-                await state.set_state(UserState.pd1)
-                await callback_query.answer()
+                match = re.search(TELEGRAM_VIDEO_PATTERN, user_data.get('video_1'))
+                if match:           
+                    keyboard = InlineKeyboardMarkup(inline_keyboard=[
+                    [InlineKeyboardButton(text="Продолжить", callback_data="next")]
+                    ])
+                    await callback_query.message.answer(f"{user_data.get('pd1')}\n{user_data.get('video_1')}", reply_markup = keyboard)
+                    await state.set_state(UserState.pd1)
+                    await callback_query.answer()
+                else:                    
+                    keyboard = InlineKeyboardMarkup(inline_keyboard=[
+                    [InlineKeyboardButton(text="Продолжить", callback_data="next")]
+                    ])
+                    await callback_query.message.answer(f"{user_data.get('pd1')}", reply_markup = keyboard)
+                    await state.set_state(UserState.pd1)
+                    await callback_query.answer()
+                     
             else:
                  await callback_query.message.answer("Вы уже получили отказ")
     except Exception as e:
