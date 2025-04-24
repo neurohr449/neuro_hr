@@ -194,7 +194,7 @@ async def pd1(callback_query: CallbackQuery, state: FSMContext):
 async def pd2(callback_query: CallbackQuery, state: FSMContext):
     
     user_data = await state.get_data()
-    text = {user_data.get('pd2')}
+    text = user_data.get('pd2')
     if text:
         match = re.search(TELEGRAM_VIDEO_PATTERN, user_data.get('video_2'))
         if match:           
@@ -223,7 +223,7 @@ async def pd2(callback_query: CallbackQuery, state: FSMContext):
 @router.callback_query(StateFilter(UserState.pd2))
 async def pd3(callback_query: CallbackQuery, state: FSMContext):
     user_data = await state.get_data()
-    text = {user_data.get('pd3')}
+    text = user_data.get('pd3')
     if text:
         match = re.search(TELEGRAM_VIDEO_PATTERN, user_data.get('video_3'))
         if match:           
@@ -252,7 +252,7 @@ async def pd3(callback_query: CallbackQuery, state: FSMContext):
 @router.callback_query(StateFilter(UserState.pd3))
 async def pd4(callback_query: CallbackQuery, state: FSMContext):
     user_data = await state.get_data()
-    text = {user_data.get('pd3')}
+    text = user_data.get('pd4')
     if text:
         match = re.search(TELEGRAM_VIDEO_PATTERN, user_data.get('video_4'))
         if match:           
@@ -282,7 +282,7 @@ async def pd4(callback_query: CallbackQuery, state: FSMContext):
 @router.callback_query(StateFilter(UserState.pd4))
 async def pd5(callback_query: CallbackQuery, state: FSMContext):
     user_data = await state.get_data()
-    text = {user_data.get('pd3')}
+    text = user_data.get('pd5')
     if text:
         match = re.search(TELEGRAM_VIDEO_PATTERN, user_data.get('video_5'))
         if match:           
