@@ -419,6 +419,9 @@ async def process_answers(message: Message, state: FSMContext):
          video_note = message.video_note.file_id
          await state.update_data(video_note=video_note)
          ans10 = "Видео от кандидата получено"
+    elif message.audio:
+         audio = message.audio.file_id
+         await state.update_data(audio = audio)
     elif message.text:  
         ans10 = message.text
     else:
@@ -475,10 +478,7 @@ async def process_answers(message: Message, state: FSMContext):
           qa_data=user_qa
           )
     
-          if success:
-            await message.answer("✅ Данные сохранены!")
-          else:
-            await message.answer("⚠️ Ошибка сохранения данных")
+          
           
 @router.message(StateFilter(UserState.result_yes))
 async def process_name(message: Message, state: FSMContext):
@@ -650,6 +650,10 @@ async def process_time_selection(callback: CallbackQuery, state: FSMContext):
             await bot.send_video_note(chat_id=chat_id,
                                 video_note=video_note
                                 )
+        audio = user_data.get('audio')
+        if audio:
+             await bot.send_audio(chat_id = chat_id,
+                                  audio = audio)
         
         # 10. Сохраняем данные в Google Sheets (асинхронно)
         success = await write_to_google_sheet(
