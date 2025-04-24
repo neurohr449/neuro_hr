@@ -118,7 +118,7 @@ async def write_to_google_sheet(
     :param sheet_id: ID таблицы
     :param username: @username пользователя (обязательный параметр)
     :param first_name: Имя пользователя в Telegram
-    :param status: Один из вариантов: 'Начал чат-бота', 'Собеседование', 'Отказ'
+    :param status: Один из вариантов: '1.Начал чат-бота', '2.Собеседование', '3.Отказ'
     :param gpt_response: Комментарий AI (столбец K)
     :param full_name: ФИО (столбец F)
     :param phone_number: Номер телефона (столбец G)
@@ -165,7 +165,7 @@ async def write_to_google_sheet(
                 'Дата': current_date,
                 'ТГ': f"@{username}",
                 'Имя (тг)': first_name or "",
-                'Статус': status or "Начал чат-бота",
+                'Статус': status or "1.Начал чат-бота",
                 'День': current_day,
                 'Месяц': current_month,
                 'Год': current_year
@@ -191,12 +191,12 @@ async def write_to_google_sheet(
         if qa_data is not None:
             update_data['Вопросы и ответы'] = qa_data
         
-        # При статусе "Отказ" гарантируем сохранение ключевых данных
-        if status == "Отказ":
+        # При статусе "3.Отказ" гарантируем сохранение ключевых данных
+        if status == "3.Отказ":
             update_data.update({
                 'ТГ': f"@{username}",
                 'Дата': current_date,
-                'Статус': "Отказ"
+                'Статус': "3.Отказ"
             })
         
         # Если пользователь существует - обновляем строку, иначе добавляем новую
@@ -234,7 +234,7 @@ async def write_to_google_sheet(
                 current_date,                   # A Дата
                 f"@{username}",                # B ТГ
                 first_name or "",              # C Имя (тг)
-                status or "Начал чат-бота",    # D Статус
+                status or "1.Начал чат-бота",  # D Статус
                 "",                            # E (пустой)
                 full_name or "",               # F ФИО
                 phone_number or "",            # G Номер
@@ -404,7 +404,7 @@ def parse_interview_datetime(date_str: str, time_str: str) -> datetime:
     return date_obj.replace(tzinfo=MOSCOW_TZ)  
 
 async def get_job_data(sheet_id, state: FSMContext,):
-    range_name = "A2:AG2"
+    range_name = "A2:AH2"
     value = await get_google_sheet_data(sheet_id, range_name)
     row_data = value[0]
     await state.update_data(
@@ -431,6 +431,7 @@ async def get_job_data(sheet_id, state: FSMContext,):
         text_1=row_data[30],
         text_2=row_data[31],
         text_3=row_data[32],
+        text_4=row_data[33],
         video_1=row_data[22],
         video_2=row_data[23],
         video_3=row_data[24],
