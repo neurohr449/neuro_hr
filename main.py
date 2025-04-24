@@ -107,7 +107,7 @@ async def notification_cb_handler(callback_query: CallbackQuery, state: FSMConte
     elif current_state == UserState.pd5.state:
          await pd5(callback_query, state)
     elif current_state == UserState.q1.state:
-         await q1(callback_query.message, state)
+         await q1(callback_query, state)
     elif current_state == UserState.q2.state:
          await q2(callback_query.message, state)
     elif current_state == UserState.q3.state:
