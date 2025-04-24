@@ -464,16 +464,16 @@ async def process_answers(message: Message, state: FSMContext):
     response_2 = await get_chatgpt_response(promt_2)
     target_score = user_data.get('score')
     if int(response_score) >= int(target_score):
-        response = "Собеседование"
+        response = "2.Собеседование"
     else:
-        response = "Отказ"
+        response = "3.Отказ"
          
     await state.update_data(response=response, 
                             response_2=response_2,
                             user_qa = user_qa
                             )
     # await message.answer(f"{response_score}\n\n{response}\n\n {response_2}")
-    if response == "Собеседование":
+    if response == "2.Собеседование":
         await state.set_state(UserState.result_yes)
         await write_to_google_sheet(
              sheet_id = sheet_id, 
@@ -489,7 +489,7 @@ async def process_answers(message: Message, state: FSMContext):
     
     
     
-    elif response == "Отказ":
+    elif response == "3.Отказ":
           await state.set_state(UserState.result_no)
           await message.answer(f"{user_data.get('text_4')}") 
           # Записываем в таблицу
@@ -684,7 +684,7 @@ async def process_time_selection(callback: CallbackQuery, state: FSMContext):
             sheet_id=sheet_id,
             username=callback.from_user.username,
             first_name=callback.from_user.first_name,
-            status="Собеседование",
+            status="2.Собеседование",
             gpt_response=user_data.get('response_2', ''),
             full_name=user_data.get('user_fio'),
             phone_number=user_data.get('user_phone'),
