@@ -467,12 +467,16 @@ async def process_answers(message: Message, state: FSMContext):
         response = "2.Собеседование"
     else:
         response = "3.Отказ"
-         
+    gpt_response = f"Баллы кандидата: {response_score}\n\n AI комментарий: {response_2}"     
     await state.update_data(response=response, 
                             response_2=response_2,
-                            user_qa = user_qa
+                            user_qa = user_qa,
+                            response_score=response_score,
+                            gpt_response=gpt_response
                             )
     # await message.answer(f"{response_score}\n\n{response}\n\n {response_2}")
+    
+          
     if response == "2.Собеседование":
         await state.set_state(UserState.result_yes)
         await write_to_google_sheet(
@@ -480,7 +484,7 @@ async def process_answers(message: Message, state: FSMContext):
              username = message.from_user.username,
              first_name=message.from_user.first_name,
              status=response,
-             gpt_response=response_2,
+             gpt_response=gpt_response,
              qa_data=user_qa
              )
         text_3 = user_data.get('text_3')
@@ -498,7 +502,7 @@ async def process_answers(message: Message, state: FSMContext):
           username=message.from_user.username,
           first_name=message.from_user.first_name,
           status=response,  
-          gpt_response=response_2,
+          gpt_response=gpt_response,
           qa_data=user_qa
           )
     
@@ -624,7 +628,8 @@ async def process_time_selection(callback: CallbackQuery, state: FSMContext):
             f"Номер: {user_data.get('user_phone', 'Без телефона')}\n"
             f"Резюме: {user_data.get('user_resume')}\n"
             f"Cылка на таблицу: https://docs.google.com/spreadsheets/d/{user_data.get('sheet_id')}\n\n"
-            f"AI комментарий:{user_data.get('response_2')}"
+            f"Баллы кандидата: {user_data.get('response_score')}\n\n"
+            f"AI комментарий: {user_data.get('response_2')}"
             
         )
         
@@ -685,7 +690,7 @@ async def process_time_selection(callback: CallbackQuery, state: FSMContext):
             username=callback.from_user.username,
             first_name=callback.from_user.first_name,
             status="2.Собеседование",
-            gpt_response=user_data.get('response_2', ''),
+            gpt_response=user_data.get('gpt_response', ''),
             full_name=user_data.get('user_fio'),
             phone_number=user_data.get('user_phone'),
             resume_link=user_data.get('user_resume'),
