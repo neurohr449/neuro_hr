@@ -164,7 +164,7 @@ async def write_to_google_sheet(
             update_data = {
                 'Дата': current_date,
                 'ТГ': f"@{username}",
-                'Имя (тг)': first_name or "",
+                'Имя (ТГ)': first_name or "",
                 'Статус': status or "1.Начал чат-бота",
                 'День': current_day,
                 'Месяц': current_month,
@@ -173,7 +173,7 @@ async def write_to_google_sheet(
         
         # Обновляемые поля
         if first_name is not None:
-            update_data['Имя (тг)'] = first_name
+            update_data['Имя (ТГ)'] = first_name
         if status is not None:
             update_data['Статус'] = status
         if gpt_response is not None:
@@ -212,7 +212,7 @@ async def write_to_google_sheet(
             row_values = [
                 current_values.get('Дата', ''),                   # A
                 current_values.get('ТГ', ''),                     # B
-                current_values.get('Имя (тг)', ''),               # C
+                current_values.get('Имя (ТГ)', ''),               # C
                 current_values.get('Статус', ''),                 # D
                 '',                                               # E (пустой)
                 current_values.get('ФИО', ''),                    # F
