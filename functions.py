@@ -276,7 +276,7 @@ async def check_empty_cells(sheet_id: str) -> InlineKeyboardMarkup | None:
         # 2. Получаем данные (B4:AF21)
         data = await asyncio.get_event_loop().run_in_executor(
             None,
-            lambda: sheet.get('B4:AF21')
+            lambda: sheet.get('B4:BS21')
         )
         
         keyboard = []
@@ -358,6 +358,27 @@ async def get_available_times(sheet_id: str, selected_date_cell: str) -> InlineK
             lambda: sheet.get(date_range)
         )
         
+        # Получаем дату из строки 3 (например "ПОНЕДЕЛЬНИК 14.04.2025")
+        date_row = await loop.run_in_executor(
+            None,
+            lambda: sheet.get(f"{column_letter}3")
+        )
+        date_str = date_row[0][0] if date_row and len(date_row[0]) > 0 else ""
+        
+        # Парсим дату (формат "ПОНЕДЕЛЬНИК 14.04.2025")
+        selected_date = None
+        if date_str:
+            try:
+                date_part = date_str.split()[-1]  # берем часть после пробела (14.04.2025)
+                selected_date = datetime.datetime.strptime(date_part, "%d.%m.%Y").date()
+            except (ValueError, IndexError):
+                pass
+        
+        # Получаем текущую дату и время
+        now = datetime.datetime.now()
+        current_date = now.date()
+        current_time = now.time()
+
         # Создаем клавиатуру с доступным временем
         keyboard = []
         
@@ -367,6 +388,17 @@ async def get_available_times(sheet_id: str, selected_date_cell: str) -> InlineK
             
             # Если есть время и нет записи в дате
             if time_value and not date_value:
+                # Проверяем, нужно ли учитывать текущее время (только для сегодняшней даты)
+                if selected_date and selected_date == current_date:
+                    try:
+                        # Парсим время из таблицы (формат "13:30")
+                        slot_time = datetime.datetime.strptime(time_value, "%H:%M").time()
+                        # Пропускаем время, если оно уже прошло
+                        if slot_time < current_time:
+                            continue
+                    except ValueError:
+                        pass  # если не удалось распарсить время, оставляем кнопку
+                
                 keyboard.append([
                     InlineKeyboardButton(
                         text=time_value,
