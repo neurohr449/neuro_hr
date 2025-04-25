@@ -565,7 +565,7 @@ async def process_date_selection(callback: CallbackQuery, state: FSMContext):
         )
         await state.set_state(UserState.slot_time)
     else:
-        await callback.message.answer("К сожалению, на этот день нет свободных окон.")
+        await callback.answer("К сожалению, на этот день нет свободного времени.")
     
     await callback.answer()
 

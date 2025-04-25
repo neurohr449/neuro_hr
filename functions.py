@@ -370,12 +370,12 @@ async def get_available_times(sheet_id: str, selected_date_cell: str) -> InlineK
         if date_str:
             try:
                 date_part = date_str.split()[-1]  # берем часть после пробела (14.04.2025)
-                selected_date = datetime.datetime.strptime(date_part, "%d.%m.%Y").date()
+                selected_date = datetime.strptime(date_part, "%d.%m.%Y").date()
             except (ValueError, IndexError):
                 pass
         
         # Получаем текущую дату и время
-        now = datetime.datetime.now()
+        now = datetime.now()
         current_date = now.date()
         current_time = now.time()
 
@@ -392,7 +392,7 @@ async def get_available_times(sheet_id: str, selected_date_cell: str) -> InlineK
                 if selected_date and selected_date == current_date:
                     try:
                         # Парсим время из таблицы (формат "13:30")
-                        slot_time = datetime.datetime.strptime(time_value, "%H:%M").time()
+                        slot_time = datetime.strptime(time_value, "%H:%M").time()
                         # Пропускаем время, если оно уже прошло
                         if slot_time < current_time:
                             continue
