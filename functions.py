@@ -375,7 +375,7 @@ async def get_available_times(sheet_id: str, selected_date_cell: str) -> InlineK
                 pass
         
         # Получаем текущую дату и время
-        now = datetime.now()
+        now = datetime.now(MOSCOW_TZ)
         current_date = now.date()
         current_time = now.time()
 
@@ -392,7 +392,7 @@ async def get_available_times(sheet_id: str, selected_date_cell: str) -> InlineK
                 if selected_date and selected_date == current_date:
                     try:
                         # Парсим время из таблицы (формат "13:30")
-                        slot_time = datetime.strptime(time_value, "%H:%M").time()
+                        slot_time = datetime.strptime(time_value, "%H:%M").replace(tzinfo=MOSCOW_TZ).time()
                         # Пропускаем время, если оно уже прошло
                         if slot_time < current_time:
                             continue
