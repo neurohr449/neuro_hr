@@ -270,10 +270,10 @@ async def check_empty_cells(sheet_id: str) -> InlineKeyboardMarkup | None:
         # 1. Получаем заголовки (даты из строки 3)
         dates = await asyncio.get_event_loop().run_in_executor(
             None,
-            lambda: sheet.row_values(3)[1:31]  # B3:AF3
+            lambda: sheet.row_values(3)[1:71]  # B3:BS3
         )
         
-        # 2. Получаем данные (B4:AF21)
+        # 2. Получаем данные (B4:BS21)
         data = await asyncio.get_event_loop().run_in_executor(
             None,
             lambda: sheet.get('B4:BS21')
@@ -286,15 +286,19 @@ async def check_empty_cells(sheet_id: str) -> InlineKeyboardMarkup | None:
         current_date = now.date()
 
 
-        # Проверяем каждый столбец (B-AF)
+        # Проверяем каждый столбец (B-BS)
         for col_idx in range(len(dates)):
             if buttons_added >= max_buttons:
                 break
 
+            # Преобразуем индекс в букву Excel-стиля (B, ..., Z, AA, ..., BS)
             if col_idx < 26:  # B-Z (0-25)
                 col_letter = chr(66 + col_idx)  # B=66, ..., Z=90
-            else:  # AA-AF (26-30)
-                col_letter = 'A' + chr(65 + (col_idx - 26))  # AA=65+0, AB=65+1, ..., AF=65+5
+            elif col_idx < 52:  # AA-AZ (26-51)
+                col_letter = 'A' + chr(65 + (col_idx - 26))  # AA=65+0, ..., AZ=65+25
+            else:  # BA-BS (52-69)
+                col_letter = 'B' + chr(65 + (col_idx - 52))  # BA=65+0, ..., BS=65+17 (S=83)
+            
             has_empty = False
             
             # Проверяем ячейки в столбце (18 строк)
