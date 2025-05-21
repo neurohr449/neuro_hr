@@ -295,9 +295,9 @@ async def check_empty_cells(sheet_id: str) -> InlineKeyboardMarkup | None:
             if col_idx < 26:  # B-Z (0-25)
                 col_letter = chr(66 + col_idx)  # B=66, ..., Z=90
             elif col_idx < 52:  # AA-AZ (26-51)
-                col_letter = 'A' + chr(65 + (col_idx - 26))  # AA=65+0, ..., AZ=65+25
+                col_letter = 'A' + chr(66 + (col_idx - 26))  # AA=65+0, ..., AZ=65+25
             else:  # BA-BS (52-69)
-                col_letter = 'B' + chr(65 + (col_idx - 52))  # BA=65+0, ..., BS=65+17 (S=83)
+                col_letter = 'B' + chr(66 + (col_idx - 52))  # BA=65+0, ..., BS=65+17 (S=83)
             
             has_empty = False
             
@@ -342,7 +342,8 @@ async def get_available_times(sheet_id: str, selected_date_cell: str) -> InlineK
     """
     try:
         # Получаем букву столбца из выбранной ячейки (например "B" из "B2")
-        column_letter = selected_date_cell[0].upper()
+        column_letter = re.sub(r"\d+", "", selected_date_cell)
+        
         
         # Получаем диапазон времени (A4:A21) и выбранного столбца (B4:B21)
         time_range = f"A4:A21"
