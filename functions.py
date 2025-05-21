@@ -342,8 +342,8 @@ async def get_available_times(sheet_id: str, selected_date_cell: str) -> InlineK
     """
     try:
         # Получаем букву столбца из выбранной ячейки (например "B" из "B2")
-        column_letter = selected_date_cell[0].upper()
-        
+        column_letter = re.sub(r"\d+", "", selected_date_cell)
+        print(column_letter)
         # Получаем диапазон времени (A4:A21) и выбранного столбца (B4:B21)
         time_range = f"A4:A21"
         date_range = f"{column_letter}4:{column_letter}21"
