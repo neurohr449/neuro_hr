@@ -106,10 +106,13 @@ async def write_to_google_sheet(
     status: str = None,
     gpt_response: str = None,
     full_name: str = None,
+    company_name: str = None,
+    job_name: str = None,
     phone_number: str = None,
     resume_link: str = None,
     interview_date: str = None,
     interview_time: str = None,
+    user_score: str = None,
     qa_data: str = None
 ) -> bool:
     """
@@ -119,12 +122,15 @@ async def write_to_google_sheet(
     :param username: @username пользователя (обязательный параметр)
     :param first_name: Имя пользователя в Telegram
     :param status: Один из вариантов: '1.Начал чат-бота', '2.Собеседование', '3.Отказ'
-    :param gpt_response: Комментарий AI (столбец K)
-    :param full_name: ФИО (столбец F)
-    :param phone_number: Номер телефона (столбец G)
-    :param resume_link: Ссылка на резюме (столбец H)
-    :param interview_date: Дата собеседования (столбец I)
-    :param interview_time: Время собеседования (столбец J)
+    :param gpt_response: Комментарий AI (столбец O)
+    :param full_name: ФИО (столбец I)
+    :param company_name: Название компании (столбец G)
+    :param job_name: Название вакансии (столбец H)
+    :param phone_number: Номер телефона (столбец J)
+    :param resume_link: Ссылка на резюме (столбец K)
+    :param interview_date: Дата собеседования (столбец L)
+    :param interview_time: Время собеседования (столбец M)
+    :param user_score: Баллы (столбец N)
     :param qa_data: Вопросы и ответы (столбец L)
     :return: True если запись успешна, False при ошибке
     """
@@ -166,6 +172,8 @@ async def write_to_google_sheet(
                 'ТГ': f"@{username}",
                 'Имя (ТГ)': first_name or "",
                 'Статус': status or "1.Начал чат-бота",
+                'Название компании': company_name or "",
+                'Название вакансии': job_name or "",
                 'День': current_day,
                 'Месяц': current_month,
                 'Год': current_year
@@ -190,6 +198,9 @@ async def write_to_google_sheet(
             update_data['Время собесдеования'] = interview_time
         if qa_data is not None:
             update_data['Вопросы и ответы'] = qa_data
+        if qa_data is not None:
+            update_data['Баллы'] = user_score
+        
         
         # При статусе "3.Отказ" гарантируем сохранение ключевых данных
         if status == "3.Отказ":
@@ -213,39 +224,47 @@ async def write_to_google_sheet(
                 current_values.get('Дата', ''),                   # A
                 current_values.get('ТГ', ''),                     # B
                 current_values.get('Имя (ТГ)', ''),               # C
-                current_values.get('Статус', ''),                 # D
-                '',                                               # E (пустой)
-                current_values.get('ФИО', ''),                    # F
-                current_values.get('Номер', ''),                  # G
-                current_values.get('Ссылка на резюме', ''),       # H
-                current_values.get('Дата собеседования', ''),     # I
-                current_values.get('Время собесдеования', ''),    # J
-                current_values.get('AI комент', ''),              # K
-                current_values.get('Вопросы и ответы', ''),       # L
-                current_values.get('День', ''),                   # M
-                current_values.get('Месяц', ''),                  # N
-                current_values.get('Год', '')                     # O
+                '',
+                current_values.get('Статус', ''),                 # E
+                '',                                               
+                current_values.get('Название компании', ''),      # G
+                current_values.get('Название вакансии', ''),      # H
+                current_values.get('ФИО', ''),                    # I
+                current_values.get('Номер', ''),                  # J
+                current_values.get('Ссылка на резюме', ''),       # K
+                current_values.get('Дата собеседования', ''),     # L
+                current_values.get('Время собесдеования', ''),    # M
+                current_values.get('Баллы', ''),                  # N
+                current_values.get('AI комент', ''),              # O
+                current_values.get('Вопросы и ответы', ''),       # P
+                current_values.get('День', ''),                   # Q
+                current_values.get('Месяц', ''),                  # R
+                current_values.get('Год', '')                     # S
             ]
             
             await asyncio.to_thread(sheet.update, f'A{user_row}:O{user_row}', [row_values])
         else:
             # Формируем новую строку (все 15 столбцов A-O)
             new_row = [
-                current_date,                   # A Дата
+                current_date,                  # A Дата
                 f"@{username}",                # B ТГ
                 first_name or "",              # C Имя (тг)
-                status or "1.Начал чат-бота",  # D Статус
-                "",                            # E (пустой)
-                full_name or "",               # F ФИО
-                phone_number or "",            # G Номер
-                resume_link or "",             # H Ссылка на резюме
-                interview_date or "",         # I Дата собеседования
-                interview_time or "",         # J Время собеседования
-                gpt_response or "",           # K AI комент
-                qa_data or "",                # L Вопросы и ответы
-                current_day,                  # M День
-                current_month,                # N Месяц
-                current_year                  # O Год
+                "",                            # D (пустой)
+                status or "1.Начал чат-бота",  # E Статус
+                "",                            # F (пустой)
+                company_name or "",            # G Название компании
+                job_name or "",                # H Название вакансии
+                full_name or "",               # I ФИО
+                phone_number or "",            # J Номер
+                resume_link or "",             # K Ссылка на резюме
+                interview_date or "",          # L Дата собеседования
+                interview_time or "",          # M Время собеседования
+                user_score or "",              # N Баллы
+                gpt_response or "",            # O AI комент
+                qa_data or "",                 # P Вопросы и ответы
+                current_day,                   # Q День
+                current_month,                 # R Месяц
+                current_year                   # S Год
             ]
             await asyncio.to_thread(sheet.append_row, new_row)
         
@@ -439,8 +458,8 @@ def parse_interview_datetime(date_str: str, time_str: str) -> datetime:
     date_obj = datetime.strptime(f"{date_part} {time_str}", "%d.%m.%Y %H:%M")
     return date_obj.replace(tzinfo=MOSCOW_TZ)  
 
-async def get_job_data(sheet_id, state: FSMContext,):
-    range_name = "A2:AH2"
+async def get_job_data(sheet_id, sheet_range, state: FSMContext,):
+    range_name = f"A{sheet_range}:AL{sheet_range}"
     value = await get_google_sheet_data(sheet_id, range_name)
     row_data = value[0]
     await state.update_data(
@@ -461,6 +480,7 @@ async def get_job_data(sheet_id, state: FSMContext,):
         q10=row_data[21],
         portrait=row_data[27],
         job_text=row_data[28],
+        company_name=row_data[4],
         job_name=row_data[5],
         score = row_data[6],
         chat_id=row_data[1],
@@ -468,6 +488,10 @@ async def get_job_data(sheet_id, state: FSMContext,):
         text_2=row_data[31],
         text_3=row_data[32],
         text_4=row_data[33],
+        text_5=row_data[34],
+        text_6=row_data[35],
+        text_7=row_data[36],
+        text_8=row_data[37],
         video_1=row_data[22],
         video_2=row_data[23],
         video_3=row_data[24],
