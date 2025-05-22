@@ -242,7 +242,7 @@ async def write_to_google_sheet(
                 current_values.get('Год', '')                     # S
             ]
             
-            await asyncio.to_thread(sheet.update, f'A{user_row}:O{user_row}', [row_values])
+            await asyncio.to_thread(sheet.update, f'A{user_row}:S{user_row}', [row_values])
         else:
             # Формируем новую строку (все 15 столбцов A-O)
             new_row = [
