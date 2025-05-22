@@ -556,7 +556,7 @@ async def process_resume(message: Message, state: FSMContext):
                 "Выберите дату для записи",
                 reply_markup=keyboard
                 )
-                print(keyboard)
+                
                 
         else:
                 await message.answer("Нет доступного времени")

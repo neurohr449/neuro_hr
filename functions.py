@@ -171,6 +171,7 @@ async def write_to_google_sheet(
                 'Дата': current_date,
                 'ТГ': f"@{username}",
                 'Имя (ТГ)': first_name or "",
+                'Ссылка на переписку': f"https://t.me/{username}" or "",
                 'Статус': status or "1.Начал чат-бота",
                 'Название компании': company_name or "",
                 'Название вакансии': job_name or "",
@@ -200,10 +201,12 @@ async def write_to_google_sheet(
             update_data['Вопросы и ответы'] = qa_data
         if user_score is not None:
             update_data['Баллы'] = user_score
-        if user_score is not None:
+        if company_name is not None:
             update_data['Название компании'] = company_name
-        if user_score is not None:
+        if job_name is not None:
             update_data['Название вакансии'] = job_name
+        
+        
         
         
         # При статусе "3.Отказ" гарантируем сохранение ключевых данных
