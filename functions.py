@@ -198,7 +198,7 @@ async def write_to_google_sheet(
             update_data['Время собесдеования'] = interview_time
         if qa_data is not None:
             update_data['Вопросы и ответы'] = qa_data
-        if qa_data is not None:
+        if user_score is not None:
             update_data['Баллы'] = user_score
         
         
