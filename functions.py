@@ -200,6 +200,10 @@ async def write_to_google_sheet(
             update_data['Вопросы и ответы'] = qa_data
         if user_score is not None:
             update_data['Баллы'] = user_score
+        if user_score is not None:
+            update_data['Название компании'] = company_name
+        if user_score is not None:
+            update_data['Название вакансии'] = job_name
         
         
         # При статусе "3.Отказ" гарантируем сохранение ключевых данных
