@@ -231,7 +231,7 @@ async def write_to_google_sheet(
                 current_values.get('Дата', ''),                   # A
                 current_values.get('ТГ', ''),                     # B
                 current_values.get('Имя (ТГ)', ''),               # C
-                '',
+                current_values.get('Ссылка на переписку', ''),    # D
                 current_values.get('Статус', ''),                 # E
                 '',                                               
                 current_values.get('Название компании', ''),      # G
