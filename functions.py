@@ -253,7 +253,7 @@ async def write_to_google_sheet(
                 current_date,                  # A Дата
                 f"@{username}",                # B ТГ
                 first_name or "",              # C Имя (тг)
-                "",                            # D (пустой)
+                f"https://t.me/{username}",    # D (пустой)
                 status or "1.Начал чат-бота",  # E Статус
                 "",                            # F (пустой)
                 company_name or "",            # G Название компании
