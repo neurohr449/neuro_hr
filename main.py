@@ -150,6 +150,7 @@ async def chat_command(message: Message, state: FSMContext):
 async def pd1(callback_query: CallbackQuery, state: FSMContext):
     user_data = await state.get_data()
     sheet_id = user_data.get('sheet_id')
+    sheet_range= user_data.get('sheet_range')
     await state.update_data(
         survey_started=datetime.now(),
         survey_completed=False
@@ -170,7 +171,7 @@ async def pd1(callback_query: CallbackQuery, state: FSMContext):
                                 job_name = job_name
                          )
             if user_check != False:
-                await get_job_data(sheet_id, state)
+                await get_job_data(sheet_id, sheet_range, state)
                 user_data = await state.get_data()
                 match = re.search(TELEGRAM_VIDEO_PATTERN, user_data.get('video_1'))
                 if match:           
