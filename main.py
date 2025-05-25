@@ -544,7 +544,7 @@ async def process_answers(message: Message, state: FSMContext):
             )
     else:
         await state.set_state(UserState.result_yes)
-        await bot.send_message("Пожалуйста напишите ваше ФИО.")
+        await bot.send_message(chat_id=message.chat.id, text="Пожалуйста напишите ваше ФИО.")
           
           
 @router.message(StateFilter(UserState.result_yes))
