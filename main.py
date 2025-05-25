@@ -336,8 +336,8 @@ async def q1(callback_query: CallbackQuery, state: FSMContext):
         await callback_query.message.answer(f"{user_data.get('q1')}")
         await state.set_state(UserState.q1)
     else:
-        await state.set_state(UserState.q10)
-        await process_answers(callback_query, state)
+        await state.set_state(UserState.result_yes)
+        await bot.send_message(chat_id=callback_query.message.chat.id, text="Пожалуйста напишите ваше ФИО.")
 
 
 @router.message(StateFilter(UserState.q1))
@@ -463,88 +463,84 @@ async def q10(message: Message, state: FSMContext):
 async def process_answers(message: Message, state: FSMContext):
     user_data = await state.get_data()
     text = user_data.get('text_1')
-    text_2 = user_data.get('q1')
-    if text and text_2:
-        if message.video:
-            video=message.video.file_id
-            await state.update_data(video=video)
-            ans10 = "Видео от кандидата получено"
-        elif message.video_note:
-            video_note = message.video_note.file_id
-            await state.update_data(video_note=video_note)
-            ans10 = "Видео от кандидата получено"
-        elif message.audio:
-            audio = message.audio.file_id
-            await state.update_data(audio = audio)
-        elif message.text:  
-            ans10 = message.text
-        else:
-            ans10 = "Неизвестный формат сообщения"
-        await state.update_data(ans10=ans10)
-        user_data = await state.get_data()
-        text = user_data.get('text_2')
-        await message.answer(f"{text}")
-        await state.update_data(survey_completed = True)
+    if message.video:
+        video=message.video.file_id
+        await state.update_data(video=video)
+        ans10 = "Видео от кандидата получено"
+    elif message.video_note:
+        video_note = message.video_note.file_id
+        await state.update_data(video_note=video_note)
+        ans10 = "Видео от кандидата получено"
+    elif message.audio:
+        audio = message.audio.file_id
+        await state.update_data(audio = audio)
+    elif message.text:  
+        ans10 = message.text
+    else:
+        ans10 = "Неизвестный формат сообщения"
+    await state.update_data(ans10=ans10)
+    user_data = await state.get_data()
+    text = user_data.get('text_2')
+    await message.answer(f"{text}")
+    await state.update_data(survey_completed = True)
+    
+    sheet_id = user_data.get('sheet_id')
+    promt = f"Ты HR менеджер с опытом более 30 лет в найме, поиске и обучении персонала, с учетом всего своего опыта, чтобы в будущем подобрать кандидата для нашей вакансии: {user_data.get('job_name')}, тебе надо дать оценку ответам на вопросы по стобальной шкале и выдать общий балл по кандидату. Не нужно давать комментарий или писать любые буквы, нужно строго только одно число с общим баллом. (Обязательно без спецсимволов, например точки). Для принятия решения сравни текст вакансии {user_data.get('job_text')}, портрет кандидата {user_data.get('portrait')} и вопросы и ответы пользователя который надо оценить и написать. Вопрос 1: {user_data.get('q1')}, ответ: {user_data.get('ans1')}; Вопрос 2: {user_data.get('q2')}, ответ: {user_data.get('ans2')}; Вопрос 3: {user_data.get('q3')}, ответ: {user_data.get('ans3')}; Вопрос 4: {user_data.get('q4')}, ответ: {user_data.get('ans4')}; Вопрос 5: {user_data.get('q5')}, ответ: {user_data.get('ans5')}; Вопрос 6: {user_data.get('q6')}, ответ: {user_data.get('ans6')}; Вопрос 7:{user_data.get('q7')}, ответ: {user_data.get('ans7')}; Вопрос 8: {user_data.get('q8')}, ответ: {user_data.get('ans8')}; Вопрос 9: {user_data.get('q9')}, ответ: {user_data.get('ans9')}; Вопрос 10:{user_data.get('q10')}, ответ: {user_data.get('ans10')}. Дополнительно если в тексте меньше 10 вопросов, то последний ответ будет для крайнего вопроса"
+    promt_2 = f"Ты HR менеджер с опытом более 30 лет в найме, поиске и обучении персонала, с учетом всего своего опыта, чтобы в будущем подобрать идеального кандидата для нашей вакансии: {user_data.get('job_name')}, тебе надо оценить кандидата, сравнить его с вакансией и написать комментарии что ты считаешь по нему. Вот вопросы и ответы пользователя который надо оценить и написать свои комментарии по кандидату строго до 1000 символов: Вопрос 1: {user_data.get('q1')}, ответ: {user_data.get('ans1')}; Вопрос 2: {user_data.get('q2')}, ответ: {user_data.get('ans2')}; Вопрос 3: {user_data.get('q3')}, ответ: {user_data.get('ans3')}; Вопрос 4: {user_data.get('q4')}, ответ: {user_data.get('ans4')}; Вопрос 5: {user_data.get('q5')}, ответ: {user_data.get('ans5')}; Вопрос 6: {user_data.get('q6')}, ответ: {user_data.get('ans6')}; Вопрос 7:{user_data.get('q7')}, ответ: {user_data.get('ans7')}; Вопрос 8: {user_data.get('q8')}, ответ: {user_data.get('ans8')}; Вопрос 9: {user_data.get('q9')}, ответ: {user_data.get('ans9')}; Вопрос 10:{user_data.get('q10')}, ответ: {user_data.get('ans10')} Вот текст вакансии для анализа {user_data.get('job_text')} и портрет кандидата {user_data.get('portrait')}. Дополнительно если в тексте меньше 10 вопросов, то последний ответ будет для крайнего вопроса"
+    user_qa = f"Вопрос 1: {user_data.get('q1')}, ответ: {user_data.get('ans1')}; Вопрос 2: {user_data.get('q2')}, ответ: {user_data.get('ans2')}; Вопрос 3: {user_data.get('q3')}, ответ: {user_data.get('ans3')}; Вопрос 4: {user_data.get('q4')}, ответ: {user_data.get('ans4')}; Вопрос 5: {user_data.get('q5')}, ответ: {user_data.get('ans5')}; Вопрос 6: {user_data.get('q6')}, ответ: {user_data.get('ans6')}; Вопрос 7:{user_data.get('q7')}, ответ: {user_data.get('ans7')}; Вопрос 8: {user_data.get('q8')}, ответ: {user_data.get('ans8')}; Вопрос 9: {user_data.get('q9')}, ответ: {user_data.get('ans9')}; Вопрос 10:{user_data.get('q10')}, ответ: {user_data.get('ans10')}"
+    response_score = await get_chatgpt_response(promt)
+    response_2 = await get_chatgpt_response(promt_2)
+    target_score = user_data.get('score')
+    if int(response_score) >= int(target_score):
+        response = "2.Собеседование"
+    else:
+        response = "3.Отказ"
+    gpt_response = f"Баллы кандидата: {response_score}\n\n AI комментарий: {response_2}"     
+    await state.update_data(response=response, 
+                            response_2=response_2,
+                            user_qa = user_qa,
+                            response_score=response_score,
+                            gpt_response=gpt_response
+                            )
+    # await message.answer(f"{response_score}\n\n{response}\n\n {response_2}")
+    company_name = user_data.get('company_name')
+    job_name = user_data.get('job_name')
         
-        sheet_id = user_data.get('sheet_id')
-        promt = f"Ты HR менеджер с опытом более 30 лет в найме, поиске и обучении персонала, с учетом всего своего опыта, чтобы в будущем подобрать кандидата для нашей вакансии: {user_data.get('job_name')}, тебе надо дать оценку ответам на вопросы по стобальной шкале и выдать общий балл по кандидату. Не нужно давать комментарий или писать любые буквы, нужно строго только одно число с общим баллом. (Обязательно без спецсимволов, например точки). Для принятия решения сравни текст вакансии {user_data.get('job_text')}, портрет кандидата {user_data.get('portrait')} и вопросы и ответы пользователя который надо оценить и написать. Вопрос 1: {user_data.get('q1')}, ответ: {user_data.get('ans1')}; Вопрос 2: {user_data.get('q2')}, ответ: {user_data.get('ans2')}; Вопрос 3: {user_data.get('q3')}, ответ: {user_data.get('ans3')}; Вопрос 4: {user_data.get('q4')}, ответ: {user_data.get('ans4')}; Вопрос 5: {user_data.get('q5')}, ответ: {user_data.get('ans5')}; Вопрос 6: {user_data.get('q6')}, ответ: {user_data.get('ans6')}; Вопрос 7:{user_data.get('q7')}, ответ: {user_data.get('ans7')}; Вопрос 8: {user_data.get('q8')}, ответ: {user_data.get('ans8')}; Вопрос 9: {user_data.get('q9')}, ответ: {user_data.get('ans9')}; Вопрос 10:{user_data.get('q10')}, ответ: {user_data.get('ans10')}. Дополнительно если в тексте меньше 10 вопросов, то последний ответ будет для крайнего вопроса"
-        promt_2 = f"Ты HR менеджер с опытом более 30 лет в найме, поиске и обучении персонала, с учетом всего своего опыта, чтобы в будущем подобрать идеального кандидата для нашей вакансии: {user_data.get('job_name')}, тебе надо оценить кандидата, сравнить его с вакансией и написать комментарии что ты считаешь по нему. Вот вопросы и ответы пользователя который надо оценить и написать свои комментарии по кандидату строго до 1000 символов: Вопрос 1: {user_data.get('q1')}, ответ: {user_data.get('ans1')}; Вопрос 2: {user_data.get('q2')}, ответ: {user_data.get('ans2')}; Вопрос 3: {user_data.get('q3')}, ответ: {user_data.get('ans3')}; Вопрос 4: {user_data.get('q4')}, ответ: {user_data.get('ans4')}; Вопрос 5: {user_data.get('q5')}, ответ: {user_data.get('ans5')}; Вопрос 6: {user_data.get('q6')}, ответ: {user_data.get('ans6')}; Вопрос 7:{user_data.get('q7')}, ответ: {user_data.get('ans7')}; Вопрос 8: {user_data.get('q8')}, ответ: {user_data.get('ans8')}; Вопрос 9: {user_data.get('q9')}, ответ: {user_data.get('ans9')}; Вопрос 10:{user_data.get('q10')}, ответ: {user_data.get('ans10')} Вот текст вакансии для анализа {user_data.get('job_text')} и портрет кандидата {user_data.get('portrait')}. Дополнительно если в тексте меньше 10 вопросов, то последний ответ будет для крайнего вопроса"
-        user_qa = f"Вопрос 1: {user_data.get('q1')}, ответ: {user_data.get('ans1')}; Вопрос 2: {user_data.get('q2')}, ответ: {user_data.get('ans2')}; Вопрос 3: {user_data.get('q3')}, ответ: {user_data.get('ans3')}; Вопрос 4: {user_data.get('q4')}, ответ: {user_data.get('ans4')}; Вопрос 5: {user_data.get('q5')}, ответ: {user_data.get('ans5')}; Вопрос 6: {user_data.get('q6')}, ответ: {user_data.get('ans6')}; Вопрос 7:{user_data.get('q7')}, ответ: {user_data.get('ans7')}; Вопрос 8: {user_data.get('q8')}, ответ: {user_data.get('ans8')}; Вопрос 9: {user_data.get('q9')}, ответ: {user_data.get('ans9')}; Вопрос 10:{user_data.get('q10')}, ответ: {user_data.get('ans10')}"
-        response_score = await get_chatgpt_response(promt)
-        response_2 = await get_chatgpt_response(promt_2)
-        target_score = user_data.get('score')
-        if int(response_score) >= int(target_score):
-            response = "2.Собеседование"
-        else:
-            response = "3.Отказ"
-        gpt_response = f"Баллы кандидата: {response_score}\n\n AI комментарий: {response_2}"     
-        await state.update_data(response=response, 
-                                response_2=response_2,
-                                user_qa = user_qa,
-                                response_score=response_score,
-                                gpt_response=gpt_response
-                                )
-        # await message.answer(f"{response_score}\n\n{response}\n\n {response_2}")
-        company_name = user_data.get('company_name')
-        job_name = user_data.get('job_name')
-            
-        if response == "2.Собеседование":
-            await state.set_state(UserState.result_yes)
-            await write_to_google_sheet(
-                sheet_id = sheet_id, 
-                username = message.from_user.username,
-                first_name=message.from_user.first_name,
-                status=response,
-                gpt_response=gpt_response,
-                qa_data=user_qa,
-                company_name = company_name,
-                job_name = job_name,
-                user_score=response_score
-                )
-            text_3 = user_data.get('text_3')
-            await message.answer(text=text_3)
-            await message.answer("Пожалуйста напишите ваше ФИО.")
-        
-        
-        
-        elif response == "3.Отказ":
-            await state.set_state(UserState.result_no)
-            await message.answer(f"{user_data.get('text_4')}") 
-            # Записываем в таблицу
-            await write_to_google_sheet(
-            sheet_id=sheet_id,
-            username=message.from_user.username,
+    if response == "2.Собеседование":
+        await state.set_state(UserState.result_yes)
+        await write_to_google_sheet(
+            sheet_id = sheet_id, 
+            username = message.from_user.username,
             first_name=message.from_user.first_name,
-            status=response,  
+            status=response,
             gpt_response=gpt_response,
             qa_data=user_qa,
             company_name = company_name,
             job_name = job_name,
             user_score=response_score
             )
-    else:
-        await state.set_state(UserState.result_yes)
-        await bot.send_message(chat_id=message.chat.id, text="Пожалуйста напишите ваше ФИО.")
+        text_3 = user_data.get('text_3')
+        await message.answer(text=text_3)
+        await message.answer("Пожалуйста напишите ваше ФИО.")
+    
+    
+    
+    elif response == "3.Отказ":
+        await state.set_state(UserState.result_no)
+        await message.answer(f"{user_data.get('text_4')}") 
+        # Записываем в таблицу
+        await write_to_google_sheet(
+        sheet_id=sheet_id,
+        username=message.from_user.username,
+        first_name=message.from_user.first_name,
+        status=response,  
+        gpt_response=gpt_response,
+        qa_data=user_qa,
+        company_name = company_name,
+        job_name = job_name,
+        user_score=response_score
+        )
+    
           
           
 @router.message(StateFilter(UserState.result_yes))
