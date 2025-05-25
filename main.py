@@ -336,6 +336,7 @@ async def q1(callback_query: CallbackQuery, state: FSMContext):
         await callback_query.message.answer(f"{user_data.get('q1')}")
         await state.set_state(UserState.q1)
     else:
+        await state.update_data(survey_completed = True)
         await state.set_state(UserState.result_yes)
         await bot.send_message(chat_id=callback_query.message.chat.id, text="Пожалуйста напишите ваше ФИО.")
 
