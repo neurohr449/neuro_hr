@@ -73,10 +73,14 @@ class UserState(StatesGroup):
 @router.message(CommandStart())
 async def command_start_handler(message: Message, command: CommandObject, state: FSMContext) -> None:
     await state.set_state(UserState.welcome)
-    sheet_id  = command.args
+    args = command.args
+    parts = args.rsplit('_', 1)
+    sheet_id  = parts[0]
+    sheet_range = parts[1]
     if sheet_id:
         try:
-            await state.update_data(sheet_id=sheet_id)
+            await state.update_data(sheet_id=sheet_id,
+                                    sheet_range=sheet_range)
             text = "👋 Добро пожаловать в наш чат-бот! Мы рады, что вы здесь. \n\n🌟В этом боте вы сможете подробнее узнать про нашу компанию, вакансию и записаться на собеседование 🍀💬⚠️ \n\nЕсли бот где-то не отвечает, подождите до 30 секунд, попробуйте повторно нажать на нужную кнопку или написать ее текстом, через 60 секунд выйти из бота и зайти обратно, а так же можете нажать на эту команду /start для запуска бота с начала."
             keyboard = InlineKeyboardMarkup(inline_keyboard=[
             [InlineKeyboardButton(text="Поехали", callback_data="next")]
@@ -146,6 +150,7 @@ async def chat_command(message: Message, state: FSMContext):
 async def pd1(callback_query: CallbackQuery, state: FSMContext):
     user_data = await state.get_data()
     sheet_id = user_data.get('sheet_id')
+    sheet_range= user_data.get('sheet_range')
     await state.update_data(
         survey_started=datetime.now(),
         survey_completed=False
@@ -156,33 +161,41 @@ async def pd1(callback_query: CallbackQuery, state: FSMContext):
             user = callback_query.from_user
             username = user.username
             first_name = user.first_name
+            company_name = user_data.get('company_name')
+            job_name = user_data.get('job_name')
             user_check = await write_to_google_sheet(
                                 sheet_id = sheet_id, 
                                 username = username,
-                                first_name = first_name
+                                first_name = first_name,
+                                company_name = company_name,
+                                job_name = job_name
                          )
             if user_check != False:
-                await get_job_data(sheet_id, state)
+                await get_job_data(sheet_id, sheet_range, state)
                 user_data = await state.get_data()
-                match = re.search(TELEGRAM_VIDEO_PATTERN, user_data.get('video_1'))
-                if match:           
-                    keyboard = InlineKeyboardMarkup(inline_keyboard=[
-                    [InlineKeyboardButton(text="Продолжить", callback_data="next")]
-                    ])
-                    await callback_query.message.answer_video(video=user_data.get('video_1'), 
-                                                              caption= f"{user_data.get('pd1')}",
-                                                              reply_markup = keyboard
-                                                              )
-                    await state.set_state(UserState.pd1)
-                    await callback_query.answer()
-                else:                    
-                    keyboard = InlineKeyboardMarkup(inline_keyboard=[
-                    [InlineKeyboardButton(text="Продолжить", callback_data="next")]
-                    ])
-                    await callback_query.message.answer(f"{user_data.get('pd1')}", reply_markup = keyboard)
-                    await state.set_state(UserState.pd1)
-                    await callback_query.answer()
-                     
+                text = user_data.get('pd1')
+                if text:
+                    match = re.search(TELEGRAM_VIDEO_PATTERN, user_data.get('video_1'))
+                    if match:           
+                        keyboard = InlineKeyboardMarkup(inline_keyboard=[
+                        [InlineKeyboardButton(text="Продолжить", callback_data="next")]
+                        ])
+                        await callback_query.message.answer_video(video=user_data.get('video_1'), 
+                                                                caption= f"{user_data.get('pd1')}",
+                                                                reply_markup = keyboard
+                                                                )
+                        await state.set_state(UserState.pd1)
+                        await callback_query.answer()
+                    else:                    
+                        keyboard = InlineKeyboardMarkup(inline_keyboard=[
+                        [InlineKeyboardButton(text="Продолжить", callback_data="next")]
+                        ])
+                        await callback_query.message.answer(f"{user_data.get('pd1')}", reply_markup = keyboard)
+                        await state.set_state(UserState.pd1)
+                        await callback_query.answer()
+                else:
+                    await state.set_state(UserState.pd5)
+                    await q1(callback_query, state)     
             else:
                  await callback_query.message.answer("Вы уже получили отказ")
     except Exception as e:
@@ -316,10 +329,16 @@ async def pd5(callback_query: CallbackQuery, state: FSMContext):
 async def q1(callback_query: CallbackQuery, state: FSMContext):
     user_data = await state.get_data()
     text = user_data.get('text_1')
-    await callback_query.message.answer(f"{text}")
-    await callback_query.answer()
-    await callback_query.message.answer(f"{user_data.get('q1')}")
-    await state.set_state(UserState.q1)
+    text_2 = user_data.get('q1')
+    if text and text_2:
+        await callback_query.message.answer(f"{text}")
+        await callback_query.answer()
+        await callback_query.message.answer(f"{user_data.get('q1')}")
+        await state.set_state(UserState.q1)
+    else:
+        await state.update_data(survey_completed = True)
+        await state.set_state(UserState.result_yes)
+        await bot.send_message(chat_id=callback_query.message.chat.id, text="Пожалуйста напишите ваше ФИО.")
 
 
 @router.message(StateFilter(UserState.q1))
@@ -327,17 +346,26 @@ async def q2(message: Message, state: FSMContext):
     ans1 = message.text
     await state.update_data(ans1=ans1)
     user_data = await state.get_data()
-    await message.answer(f"{user_data.get('q2')}")
-    await state.set_state(UserState.q2)
-
+    text = user_data.get('q2')
+    if text:
+        await message.answer(f"{user_data.get('q2')}")
+        await state.set_state(UserState.q2)
+    else:
+        await state.set_state(UserState.q10)
+        await process_answers(message, state)
 
 @router.message(StateFilter(UserState.q2))
 async def q3(message: Message, state: FSMContext):
     ans1 = message.text
     await state.update_data(ans2=ans1)
     user_data = await state.get_data()
-    await message.answer(f"{user_data.get('q3')}")
-    await state.set_state(UserState.q3)
+    text = user_data.get('q3')
+    if text:
+        await message.answer(f"{user_data.get('q3')}")
+        await state.set_state(UserState.q3)
+    else:
+        await state.set_state(UserState.q10)
+        await process_answers(message, state)
 
 @router.message(StateFilter(UserState.q3))
 async def q4(message: Message, state: FSMContext):
@@ -434,18 +462,19 @@ async def q10(message: Message, state: FSMContext):
 
 @router.message(StateFilter(UserState.q10))
 async def process_answers(message: Message, state: FSMContext):
-    
+    user_data = await state.get_data()
+    text = user_data.get('text_1')
     if message.video:
-         video=message.video.file_id
-         await state.update_data(video=video)
-         ans10 = "Видео от кандидата получено"
+        video=message.video.file_id
+        await state.update_data(video=video)
+        ans10 = "Видео от кандидата получено"
     elif message.video_note:
-         video_note = message.video_note.file_id
-         await state.update_data(video_note=video_note)
-         ans10 = "Видео от кандидата получено"
+        video_note = message.video_note.file_id
+        await state.update_data(video_note=video_note)
+        ans10 = "Видео от кандидата получено"
     elif message.audio:
-         audio = message.audio.file_id
-         await state.update_data(audio = audio)
+        audio = message.audio.file_id
+        await state.update_data(audio = audio)
     elif message.text:  
         ans10 = message.text
     else:
@@ -475,18 +504,22 @@ async def process_answers(message: Message, state: FSMContext):
                             gpt_response=gpt_response
                             )
     # await message.answer(f"{response_score}\n\n{response}\n\n {response_2}")
-    
-          
+    company_name = user_data.get('company_name')
+    job_name = user_data.get('job_name')
+        
     if response == "2.Собеседование":
         await state.set_state(UserState.result_yes)
         await write_to_google_sheet(
-             sheet_id = sheet_id, 
-             username = message.from_user.username,
-             first_name=message.from_user.first_name,
-             status=response,
-             gpt_response=gpt_response,
-             qa_data=user_qa
-             )
+            sheet_id = sheet_id, 
+            username = message.from_user.username,
+            first_name=message.from_user.first_name,
+            status=response,
+            gpt_response=gpt_response,
+            qa_data=user_qa,
+            company_name = company_name,
+            job_name = job_name,
+            user_score=response_score
+            )
         text_3 = user_data.get('text_3')
         await message.answer(text=text_3)
         await message.answer("Пожалуйста напишите ваше ФИО.")
@@ -494,17 +527,20 @@ async def process_answers(message: Message, state: FSMContext):
     
     
     elif response == "3.Отказ":
-          await state.set_state(UserState.result_no)
-          await message.answer(f"{user_data.get('text_4')}") 
-          # Записываем в таблицу
-          await write_to_google_sheet(
-          sheet_id=sheet_id,
-          username=message.from_user.username,
-          first_name=message.from_user.first_name,
-          status=response,  
-          gpt_response=gpt_response,
-          qa_data=user_qa
-          )
+        await state.set_state(UserState.result_no)
+        await message.answer(f"{user_data.get('text_4')}") 
+        # Записываем в таблицу
+        await write_to_google_sheet(
+        sheet_id=sheet_id,
+        username=message.from_user.username,
+        first_name=message.from_user.first_name,
+        status=response,  
+        gpt_response=gpt_response,
+        qa_data=user_qa,
+        company_name = company_name,
+        job_name = job_name,
+        user_score=response_score
+        )
     
           
           
@@ -540,6 +576,7 @@ async def process_resume(message: Message, state: FSMContext):
                 "Выберите дату для записи",
                 reply_markup=keyboard
                 )
+                
                 
         else:
                 await message.answer("Нет доступного времени")
@@ -622,9 +659,11 @@ async def process_time_selection(callback: CallbackQuery, state: FSMContext):
         # 7. Подготовка данных для записи
         record_text = (
             f"{date_value} {time_value} #{user_data.get('response')}\n\n"
+            f"Компания: {user_data.get('company_name')}\n"
             f"Вакансия: {user_data.get('job_name')}\n\n"
             f"ФИО: {user_data.get('user_fio', 'Без имени')}\n"
             f"ТГ: @{callback.from_user.username}\n"
+            f"Ссылка на переписку: https://t.me/{callback.from_user.username}\n"
             f"Номер: {user_data.get('user_phone', 'Без телефона')}\n"
             f"Резюме: {user_data.get('user_resume')}\n"
             f"Cылка на таблицу: https://docs.google.com/spreadsheets/d/{user_data.get('sheet_id')}\n\n"
@@ -652,11 +691,11 @@ async def process_time_selection(callback: CallbackQuery, state: FSMContext):
                 [InlineKeyboardButton(text="Изменить время", callback_data="change_time")],
                 [InlineKeyboardButton(text="Удалить запись", callback_data="delete_time")]
                 ])
-        
+        user_data = await state.get_data()
         # 9. Отправляем подтверждение пользователю
         await callback.message.edit_text(
-            f"💖 Спасибо, что выбрали нас! Ждем Вас в {date_value} в {time_value} на собеседование, ссылку пришлем за пару минут до его начала.\n\n"
-            "Если у вас изменились планы, то не забудьте нажать на кнопку \"Изменить время\" или \"Удалить запись\", если вовсе передумали.", reply_markup=keyboard
+            f"Ждем Вас в {date_value} в {time_value} на собеседование\n\n"
+            f"{user_data.get('text_5')}", reply_markup=keyboard
         )
 
         
@@ -696,14 +735,17 @@ async def process_time_selection(callback: CallbackQuery, state: FSMContext):
             resume_link=user_data.get('user_resume'),
             interview_date=date_value,
             interview_time=time_value,
-            qa_data=user_data.get('user_qa')
+            qa_data=user_data.get('user_qa'),
+            job_name=user_data.get('job_name'),
+            company_name=user_data.get('company_name'),
+            user_score=user_data.get('response_score')
         )
         
-
+        user_data = await state.get_data()
         interview_time = parse_interview_datetime(date_value, time_value)
         interview_time_utc = interview_time.astimezone(SERVER_TZ)
-        task1 = asyncio.create_task(send_reminder_at_time(callback.message.chat.id, interview_time_utc - timedelta(hours=1), "⏰ До собеседования 1 час!"))
-        task2 = asyncio.create_task(send_reminder_at_time(callback.message.chat.id, interview_time_utc, "🔔 Собеседование начинается сейчас!"))
+        task1 = asyncio.create_task(send_reminder_at_time(callback.message.chat.id, interview_time_utc - timedelta(hours=1), f"{user_data.get('text_7')}"))
+        task2 = asyncio.create_task(send_reminder_at_time(callback.message.chat.id, interview_time_utc, f"{user_data.get('text_8')}"))
         
         await state.update_data(
         date_value=date_value,
@@ -770,7 +812,7 @@ async def check_survey_completion(chat_id: int, state: FSMContext):
         keyboard = InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text="Продолжить", callback_data="notification")]
         ])
-        await bot.send_message(chat_id, "Привет! Вакансия пока доступна, но количество мест ограничено. Если ты хочешь узнать больше – продолжай просмотр и принимай решение!\n\n🎯 Успей подать заявку, пока набор открыт!",reply_markup=keyboard)
+        await bot.send_message(chat_id, f"{data.get('text_6')}",reply_markup=keyboard)
 
 
 async def send_reminder(chat_id: int, text: str):
