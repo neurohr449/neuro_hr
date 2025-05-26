@@ -33,7 +33,7 @@ MOSCOW_TZ = ZoneInfo("Europe/Moscow")
 SERVER_TZ = ZoneInfo("UTC")
 TELEGRAM_VIDEO_PATTERN = r'https://t\.me/'
 
-# from auth import BOT_TOKEN
+
 bot = Bot(token=BOT_TOKEN, default=DefaultBotProperties(
     parse_mode=ParseMode.HTML))
 storage = MemoryStorage()
