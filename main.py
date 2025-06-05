@@ -79,6 +79,7 @@ async def command_start_handler(message: Message, command: CommandObject, state:
     sheet_range = parts[1]
 
     if not sheet_range.isdigit():
+        sheet_id = command.args
         sheet_range=2
     
         
