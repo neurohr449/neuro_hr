@@ -77,6 +77,12 @@ async def command_start_handler(message: Message, command: CommandObject, state:
     parts = args.rsplit('_', 1)
     sheet_id  = parts[0]
     sheet_range = parts[1]
+    
+    if not sheet_range:
+        sheet_range=2
+    
+        
+
     if sheet_id:
         try:
             await state.update_data(sheet_id=sheet_id,
