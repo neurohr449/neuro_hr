@@ -77,8 +77,8 @@ async def command_start_handler(message: Message, command: CommandObject, state:
     parts = args.rsplit('_', 1)
     sheet_id  = parts[0]
     sheet_range = parts[1]
-    
-    if not sheet_range:
+
+    if not sheet_range.isdigit():
         sheet_range=2
     
         
