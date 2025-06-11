@@ -74,11 +74,10 @@ class UserState(StatesGroup):
 async def command_start_handler(message: Message, command: CommandObject, state: FSMContext) -> None:
     await state.set_state(UserState.welcome)
     args = command.args
-    parts = args.rsplit('_', 1)
-    sheet_id  = parts[0]
-    sheet_range = parts[1]
-
     if args:
+        parts = args.rsplit('_', 1)
+        sheet_id  = parts[0]
+        sheet_range = parts[1]    
         if len(parts) > 1 and parts[1].isdigit():  
             sheet_id = parts[0]  
             sheet_range = parts[1]  
@@ -87,7 +86,8 @@ async def command_start_handler(message: Message, command: CommandObject, state:
             sheet_range = 2
         
         print(f"sheetid {sheet_id}", "sheet_range",sheet_range)
-    
+    else:
+        await message.answer("👋 Здравствуйте. Запустите бота по уникальной ссылке!")
         
 
     if sheet_id:
@@ -193,10 +193,8 @@ async def pd1(callback_query: CallbackQuery, state: FSMContext):
                         keyboard = InlineKeyboardMarkup(inline_keyboard=[
                         [InlineKeyboardButton(text="Продолжить", callback_data="next")]
                         ])
-                        await callback_query.message.answer_video(video=user_data.get('video_1'), 
-                                                                caption= f"{user_data.get('pd1')}",
-                                                                reply_markup = keyboard
-                                                                )
+                        await callback_query.message.answer_video(video=user_data.get('video_1'))
+                        await callback_query.message.answer(text=f"{user_data.get('pd1')}", reply_markup = keyboard)
                         await state.set_state(UserState.pd1)
                         await callback_query.answer()
                     else:                    
@@ -227,10 +225,8 @@ async def pd2(callback_query: CallbackQuery, state: FSMContext):
             keyboard = InlineKeyboardMarkup(inline_keyboard=[
             [InlineKeyboardButton(text="Продолжить", callback_data="next")]
             ])
-            await callback_query.message.answer_video(video=user_data.get('video_2'), 
-                                                        caption= f"{user_data.get('pd2')}",
-                                                        reply_markup = keyboard
-                                                        )
+            await callback_query.message.answer_video(video=user_data.get('video_2'))
+            await callback_query.message.answer(text=f"{user_data.get('pd2')}", reply_markup = keyboard)
             await state.set_state(UserState.pd2)
             await callback_query.answer()
         else:
@@ -256,10 +252,8 @@ async def pd3(callback_query: CallbackQuery, state: FSMContext):
             keyboard = InlineKeyboardMarkup(inline_keyboard=[
             [InlineKeyboardButton(text="Продолжить", callback_data="next")]
             ])
-            await callback_query.message.answer_video(video=user_data.get('video_3'), 
-                                                        caption= f"{user_data.get('pd3')}",
-                                                        reply_markup = keyboard
-                                                        )
+            await callback_query.message.answer_video(video=user_data.get('video_3'))
+            await callback_query.message.answer(text=f"{user_data.get('pd3')}", reply_markup = keyboard)
             await state.set_state(UserState.pd3)
             await callback_query.answer()
         else: 
@@ -285,10 +279,8 @@ async def pd4(callback_query: CallbackQuery, state: FSMContext):
             keyboard = InlineKeyboardMarkup(inline_keyboard=[
             [InlineKeyboardButton(text="Продолжить", callback_data="next")]
             ])
-            await callback_query.message.answer_video(video=user_data.get('video_4'), 
-                                                        caption= f"{user_data.get('pd4')}",
-                                                        reply_markup = keyboard
-                                                        )
+            await callback_query.message.answer_video(video=user_data.get('video_4'))
+            await callback_query.message.answer(text=f"{user_data.get('pd4')}", reply_markup = keyboard)
             await state.set_state(UserState.pd4)
             await callback_query.answer()
         else:
@@ -315,10 +307,8 @@ async def pd5(callback_query: CallbackQuery, state: FSMContext):
             keyboard = InlineKeyboardMarkup(inline_keyboard=[
             [InlineKeyboardButton(text="Продолжить", callback_data="next")]
             ])
-            await callback_query.message.answer_video(video=user_data.get('video_5'), 
-                                                        caption= f"{user_data.get('pd5')}",
-                                                        reply_markup = keyboard
-                                                        )
+            await callback_query.message.answer_video(video=user_data.get('video_5'))
+            await callback_query.message.answer(text=f"{user_data.get('pd5')}", reply_markup = keyboard)
             await state.set_state(UserState.pd5)
             await callback_query.answer()
         else:
