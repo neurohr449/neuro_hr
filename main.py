@@ -478,6 +478,9 @@ async def process_answers(message: Message, state: FSMContext):
     elif message.audio:
         audio = message.audio.file_id
         await state.update_data(audio = audio)
+    elif message.voice:
+        voice = message.voice.file_id
+        await state.update_data(voice = voice)
     elif message.text:  
         ans10 = message.text
     else:
@@ -725,7 +728,11 @@ async def process_time_selection(callback: CallbackQuery, state: FSMContext):
         if audio:
              await bot.send_audio(chat_id = chat_id,
                                   audio = audio)
-        
+        voice = user_data.get('voice')
+        if voice:
+            await bot.send_voice(chat_id = chat_id,
+                                 voice = voice)
+            
         # 10. Сохраняем данные в Google Sheets (асинхронно)
         success = await write_to_google_sheet(
             sheet_id=sheet_id,
