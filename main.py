@@ -478,9 +478,11 @@ async def process_answers(message: Message, state: FSMContext):
     elif message.audio:
         audio = message.audio.file_id
         await state.update_data(audio = audio)
+        ans10 = "Аудио от кандидата получено"
     elif message.voice:
         voice = message.voice.file_id
         await state.update_data(voice = voice)
+        ans10 = "Аудио от кандидата получено"
     elif message.text:  
         ans10 = message.text
     else:
