@@ -168,9 +168,11 @@ async def pd1(callback_query: CallbackQuery, state: FSMContext):
         survey_started=datetime.now(),
         survey_completed=False
     )
+
     asyncio.create_task(check_survey_completion(callback_query.message.chat.id, state))
     
     try:
+            await get_job_data(sheet_id, sheet_range, state)
             user = callback_query.from_user
             username = user.username
             first_name = user.first_name
@@ -184,7 +186,7 @@ async def pd1(callback_query: CallbackQuery, state: FSMContext):
                                 job_name = job_name
                          )
             if user_check != False:
-                await get_job_data(sheet_id, sheet_range, state)
+                
                 user_data = await state.get_data()
                 text = user_data.get('pd1')
                 if text:
