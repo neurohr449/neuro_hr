@@ -706,6 +706,23 @@ async def process_time_selection(callback: CallbackQuery, state: FSMContext):
             f"{user_data.get('text_5')}", reply_markup=keyboard
         )
 
+        candidate_chat_id = callback.message.chat.id
+
+        keyboard = InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(
+                    text="❌ Отказать",
+                    callback_data=f"handle_decline_{column_letter}_{row_number}_{candidate_chat_id}_0"
+                )],
+                [InlineKeyboardButton(
+                    text="❌ Отказать и удалить из календаря", 
+                    callback_data=f"handle_accept_{column_letter}_{row_number}_{candidate_chat_id}_1"
+                ),
+            ]
+        ]
+    )
+
         
         chat_id = user_data.get('chat_id')
         await state.set_state(UserState.process_time_change)
@@ -815,6 +832,31 @@ async def time_change(callback_query: CallbackQuery, state: FSMContext):
 
         await callback_query.answer()
     
+
+
+
+
+
+@router.callback_query(lambda c: c.data.startswith("handle_decline_"))
+async def handle_decline_handler(callback_query: CallbackQuery, state: FSMContext) -> None:
+    parts = callback_query.data.split("_")
+    column_letter = parts[2].upper()  
+    row_number = parts[3]   
+    chat_id = parts[4]
+    function_id = parts[5]
+    if function_id == 0:
+        await bot.send_message(chat_id = chat_id,
+                               text = "К сожалению вы получили отказ")
+    else:
+        await bot.send_message(chat_id = chat_id,
+                               text = "К сожалению вы получили отказ")
+        user_data = await state.get_data()
+        sheet_id = user_data.get('sheet_id')
+
+        target_cell = f"{column_letter}{row_number}"
+        await  clear_cell(sheet_id, target_cell)
+
+
 ##########################################################################################################################################################################################################
 async def check_survey_completion(chat_id: int, state: FSMContext):
     await asyncio.sleep(3600)  # Ждем 1 час
