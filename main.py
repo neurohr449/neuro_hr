@@ -731,6 +731,7 @@ async def process_time_selection(callback: CallbackQuery, state: FSMContext):
         
         await bot.send_message(chat_id=chat_id,
                                 text=f"{record_text}",
+                                reply_markup=keyboard,
                                 disable_web_page_preview=True
                                 )
         video = user_data.get('video')
