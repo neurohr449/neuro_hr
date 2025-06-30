@@ -850,17 +850,23 @@ async def handle_decline_handler(callback_query: CallbackQuery, state: FSMContex
     row_number = parts[3]   
     chat_id = parts[4]
     function_id = parts[5]
+    user_data = await state.get_data()
+    sheet_id = user_data.get('sheet_id')
+    decline_text = user_data.get('text_4')
+    
     if function_id == 0:
         await bot.send_message(chat_id = chat_id,
-                               text = "К сожалению вы получили отказ")
-    else:
+                               text = f"{decline_text}")
+    elif function_id == 1:
         await bot.send_message(chat_id = chat_id,
-                               text = "К сожалению вы получили отказ")
-        user_data = await state.get_data()
-        sheet_id = user_data.get('sheet_id')
+                               text = f"{decline_text}")
 
         target_cell = f"{column_letter}{row_number}"
         await  clear_cell(sheet_id, target_cell)
+    elif function_id == 2:
+        await bot.send_message(chat_id = chat_id,
+                               text = f"{decline_text}")
+
 
 
 ##########################################################################################################################################################################################################
