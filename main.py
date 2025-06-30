@@ -711,22 +711,27 @@ async def process_time_selection(callback: CallbackQuery, state: FSMContext):
         candidate_chat_id = callback.message.chat.id
 
         keyboard = InlineKeyboardMarkup(
-        inline_keyboard=[
-            [
-                InlineKeyboardButton(
-                    text="❌ Отказать",
-                    callback_data=f"handle_decline_{column_letter}_{row_number}_{candidate_chat_id}_0"
-                )],
-                [InlineKeyboardButton(
-                    text="❌ Отказать и удалить из календаря", 
-                    callback_data=f"handle_accept_{column_letter}_{row_number}_{candidate_chat_id}_1"
-                )],
-                [InlineKeyboardButton(
-                    text="Отправить на обучение", 
-                    callback_data=f"handle_accept_{column_letter}_{row_number}_{candidate_chat_id}_2"
-                )]
-        ]
-    )
+            inline_keyboard=[
+                [  # Первый ряд
+                    InlineKeyboardButton(
+                        text="❌ Отказать",
+                        callback_data=f"handle_decline_{column_letter}_{row_number}_{candidate_chat_id}_0"
+                    )
+                ],
+                [  # Второй ряд
+                    InlineKeyboardButton(
+                        text="❌ Отказать и удалить из календаря", 
+                        callback_data=f"handle_decline_{column_letter}_{row_number}_{candidate_chat_id}_1" 
+                    )
+                ],
+                [  # Третий ряд
+                    InlineKeyboardButton(
+                        text="Отправить на обучение", 
+                        callback_data=f"handle_decline_{column_letter}_{row_number}_{candidate_chat_id}_2"
+                    )
+                ]
+            ]
+        )
 
         
         chat_id = user_data.get('chat_id')
@@ -849,8 +854,9 @@ async def handle_decline_handler(callback_query: CallbackQuery, state: FSMContex
     column_letter = parts[2].upper()  
     row_number = parts[3]   
     chat_id = parts[4]
-    function_id = parts[5]
+    function_id = int(parts[5])  
     user_data = await state.get_data()
+    print(user_data)
     sheet_id = user_data.get('sheet_id')
     decline_text = user_data.get('text_4')
     
