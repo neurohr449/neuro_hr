@@ -466,7 +466,7 @@ def parse_interview_datetime(date_str: str, time_str: str) -> datetime:
     date_obj = datetime.strptime(f"{date_part} {time_str}", "%d.%m.%Y %H:%M")
     return date_obj.replace(tzinfo=MOSCOW_TZ)  
 
-async def get_job_data(sheet_id, sheet_range, state: FSMContext,):
+async def get_job_data(sheet_id, sheet_range, state: FSMContext):
     range_name = f"A{sheet_range}:AL{sheet_range}"
     value = await get_google_sheet_data(sheet_id, range_name)
     row_data = value[0]

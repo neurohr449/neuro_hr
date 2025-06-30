@@ -710,24 +710,37 @@ async def process_time_selection(callback: CallbackQuery, state: FSMContext):
 
         candidate_chat_id = callback.message.chat.id
 
+        sheet_range = user_data.get('sheet_range')
         keyboard = InlineKeyboardMarkup(
             inline_keyboard=[
-                [  # Первый ряд
+                [  
                     InlineKeyboardButton(
                         text="❌ Отказать",
-                        callback_data=f"handle_decline_{column_letter}_{row_number}_{candidate_chat_id}_0"
+                        callback_data=f"d_{column_letter}_{row_number}_{candidate_chat_id}_0_{sheet_id}_{sheet_range}"
                     )
                 ],
-                [  # Второй ряд
+                [ 
                     InlineKeyboardButton(
                         text="❌ Отказать и удалить из календаря", 
-                        callback_data=f"handle_decline_{column_letter}_{row_number}_{candidate_chat_id}_1" 
+                        callback_data=f"d_{column_letter}_{row_number}_{candidate_chat_id}_1_{sheet_id}_{sheet_range}" 
                     )
                 ],
-                [  # Третий ряд
+                [ 
                     InlineKeyboardButton(
-                        text="Отправить на обучение", 
-                        callback_data=f"handle_decline_{column_letter}_{row_number}_{candidate_chat_id}_2"
+                        text="✅ Отправить на обучение", 
+                        callback_data=f"d_{column_letter}_{row_number}_{candidate_chat_id}_2_{sheet_id}_{sheet_range}"
+                    )
+                ],
+                [  
+                    InlineKeyboardButton(
+                        text="✅ Отправить на стажировку", 
+                        callback_data=f"d_{column_letter}_{row_number}_{candidate_chat_id}_3_{sheet_id}_{sheet_range}"
+                    )
+                ],
+                [  
+                    InlineKeyboardButton(
+                        text="✅ Пригласить на работу", 
+                        callback_data=f"d_{column_letter}_{row_number}_{candidate_chat_id}_4_{sheet_id}_{sheet_range}"
                     )
                 ]
             ]
@@ -848,13 +861,16 @@ async def time_change(callback_query: CallbackQuery, state: FSMContext):
 
 
 
-@router.callback_query(lambda c: c.data.startswith("handle_decline_"))
+@router.callback_query(lambda c: c.data.startswith("d_"))
 async def handle_decline_handler(callback_query: CallbackQuery, state: FSMContext) -> None:
     parts = callback_query.data.split("_")
     column_letter = parts[2].upper()  
     row_number = parts[3]   
     chat_id = parts[4]
     function_id = int(parts[5])  
+    sheet_id = parts[6]
+    sheet_range = parts [7]
+    await get_job_data(sheet_id, sheet_range, state)
     user_data = await state.get_data()
     print(user_data)
     sheet_id = user_data.get('sheet_id')
@@ -870,6 +886,12 @@ async def handle_decline_handler(callback_query: CallbackQuery, state: FSMContex
         target_cell = f"{column_letter}{row_number}"
         await  clear_cell(sheet_id, target_cell)
     elif function_id == 2:
+        await bot.send_message(chat_id = chat_id,
+                               text = f"{decline_text}")
+    elif function_id == 3:
+        await bot.send_message(chat_id = chat_id,
+                               text = f"{decline_text}")
+    elif function_id == 4:
         await bot.send_message(chat_id = chat_id,
                                text = f"{decline_text}")
 
