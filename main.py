@@ -720,8 +720,11 @@ async def process_time_selection(callback: CallbackQuery, state: FSMContext):
                 [InlineKeyboardButton(
                     text="❌ Отказать и удалить из календаря", 
                     callback_data=f"handle_accept_{column_letter}_{row_number}_{candidate_chat_id}_1"
-                ),
-            ]
+                )],
+                [InlineKeyboardButton(
+                    text="Отправить на обучение", 
+                    callback_data=f"handle_accept_{column_letter}_{row_number}_{candidate_chat_id}_2"
+                )]
         ]
     )
 
