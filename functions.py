@@ -413,7 +413,8 @@ async def get_available_times(sheet_id: str, selected_date_cell: str) -> InlineK
 
         # Создаем клавиатуру с доступным временем
         keyboard = []
-        
+        row = []
+
         for i in range(len(time_values)):
             time_value = time_values[i][0] if i < len(time_values) and len(time_values[i]) > 0 else None
             date_value = date_values[i][0] if i < len(date_values) and len(date_values[i]) > 0 else None
@@ -439,12 +440,20 @@ async def get_available_times(sheet_id: str, selected_date_cell: str) -> InlineK
                     except ValueError:
                         pass  # если не удалось распарсить время, оставляем кнопку
                 
-                keyboard.append([
-                    InlineKeyboardButton(
+                    button = InlineKeyboardButton(
                         text=time_value,
-                        callback_data=f"select_time_{column_letter}_{i+4}"  # i+4 соответствует реальной строке
+                        callback_data=f"select_time_{column_letter}_{i+4}"
                     )
-                ])
+                    row.append(button)
+                    
+                    # Если в ряду уже 2 кнопки, добавляем ряд в клавиатуру
+                    if len(row) == 2:
+                        keyboard.append(row)
+                        row = []  # Начинаем новый ряд
+
+            # Добавляем последний ряд, если он не пустой
+            if row:
+                keyboard.append(row)
                 print(f"keyboard{keyboard}")
         return InlineKeyboardMarkup(inline_keyboard=keyboard) if keyboard else None
         

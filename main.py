@@ -559,7 +559,7 @@ async def process_name(message: Message, state: FSMContext):
         user_fio = message.text
         await state.update_data(user_fio=user_fio)
         await state.set_state(UserState.user_resume)
-        await message.answer("Пришлите, пожалуйста, ссылку на ваше резюме.\n\nВзять на резюме ссылку можно по следующей ссылке:https://hh.ru/applicant/resumes")
+        await message.answer("Пришлите, пожалуйста, ссылку на ваше резюме.\n\nВзять на резюме ссылку можно по следующей ссылке: https://hh.ru/applicant/resumes")
 
 @router.message(StateFilter(UserState.user_resume))
 async def process_resume(message: Message, state: FSMContext):
