@@ -425,7 +425,14 @@ async def get_available_times(sheet_id: str, selected_date_cell: str) -> InlineK
                 if selected_date and selected_date == current_date:
                     try:
                         # Парсим время из таблицы (формат "13:30")
-                        slot_time = datetime.strptime(time_value, "%H:%M").replace(tzinfo=MOSCOW_TZ).time()
+                        try:
+                            # Если время в формате "9:00" → преобразуем в "09:00"
+                            if len(time_value.split(":")[0]) == 1:
+                                time_value = f"0{time_value}"
+                            slot_time = datetime.strptime(time_value, "%H:%M").replace(tzinfo=MOSCOW_TZ).time()
+                        except ValueError as e:
+                            logging.error(f"Ошибка парсинга времени {time_value}: {e}")
+                            continue
                         # Пропускаем время, если оно уже прошло
                         if slot_time < current_time:
                             continue
