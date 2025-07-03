@@ -606,6 +606,7 @@ async def process_date_selection(callback: CallbackQuery, state: FSMContext):
     keyboard = await get_available_times(sheet_id, selected_date_cell)
     
     if keyboard:
+        print(keyboard)
         await callback.message.edit_text(
             "Доступное время для записи:",
             reply_markup=keyboard
@@ -614,7 +615,6 @@ async def process_date_selection(callback: CallbackQuery, state: FSMContext):
     else:
         await callback.answer("К сожалению, на этот день нет свободного времени.")
     
-    await callback.answer()
 
 
 
@@ -832,6 +832,7 @@ async def time_change(callback_query: CallbackQuery, state: FSMContext):
         keyboard = await check_empty_cells(sheet_id)
         
         if keyboard:
+                
                 await callback_query.message.answer(
                 "Выберите дату для записи",
                 reply_markup=keyboard
@@ -883,7 +884,7 @@ async def handle_decline_handler(callback_query: CallbackQuery, state: FSMContex
         await bot.send_message(chat_id = chat_id,
                                text = f"{decline_text}")
 
-        
+        target_cell=None
         await  clear_cell(sheet_id, target_cell)
     elif function_id == 2:
         await bot.send_message(chat_id = chat_id,
