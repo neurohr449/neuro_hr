@@ -595,26 +595,46 @@ async def process_resume(message: Message, state: FSMContext):
 
 @router.callback_query(lambda c: c.data.startswith("select_date_"), UserState.slot_day)
 async def process_date_selection(callback: CallbackQuery, state: FSMContext):
-    # Получаем выбранную ячейку даты (например "B2")
-    selected_date_cell = callback.data.split("_")[2]  # "select_date_B2" → "B2"
-    
-    # Получаем sheet_id из состояния
-    user_data = await state.get_data()
-    sheet_id = user_data.get('sheet_id')
-    
-    # Получаем клавиатуру с доступным временем
-    keyboard = await get_available_times(sheet_id, selected_date_cell)
-    
-    if keyboard:
-        print(keyboard)
+    try:
         
-        await callback.message.answer(
-            "Доступное время для записи на собеседование:",
-            reply_markup=keyboard
-        )
+        selected_date_cell = callback.data.split("_")[2]
+        user_data = await state.get_data()
+        sheet_id = user_data.get('sheet_id')
+        
+        
+        keyboard = await get_available_times(sheet_id, selected_date_cell)
+        
+        if not keyboard:
+            await callback.answer("Нет свободных слотов")
+            return
+
+        
+        try:
+            
+            await callback.message.edit_text("⌛ Загружаем доступное время...")
+            
+            
+            await asyncio.sleep(1)  
+            
+            
+            await callback.message.edit_text(
+                text="Доступное время для записи:",
+                reply_markup=keyboard
+            )
+            
+        except Exception as e:
+            logging.error(f"Edit message error: {e}")
+            
+            await callback.message.answer(
+                "Доступное время:",
+                reply_markup=keyboard
+            )
+            
         await state.set_state(UserState.slot_time)
-    else:
-        await callback.answer("К сожалению, на этот день нет свободного времени.")
+        
+    except Exception as e:
+        logging.error(f"Full error: {e}")
+        await callback.answer("Произошла ошибка")
     
 
 
