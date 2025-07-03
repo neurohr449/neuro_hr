@@ -405,7 +405,7 @@ async def get_available_times(sheet_id: str, selected_date_cell: str) -> InlineK
                 selected_date = datetime.strptime(date_part, "%d.%m.%Y").date()
             except (ValueError, IndexError):
                 pass
-        
+        print(f"selected_date{selected_date}")
         # Получаем текущую дату и время
         now = datetime.now(MOSCOW_TZ)
         current_date = now.date()
@@ -445,7 +445,7 @@ async def get_available_times(sheet_id: str, selected_date_cell: str) -> InlineK
                         callback_data=f"select_time_{column_letter}_{i+4}"  # i+4 соответствует реальной строке
                     )
                 ])
-        
+                print(f"keyboard{keyboard}")
         return InlineKeyboardMarkup(inline_keyboard=keyboard) if keyboard else None
         
     except Exception as e:
