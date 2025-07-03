@@ -608,7 +608,7 @@ async def process_date_selection(callback: CallbackQuery, state: FSMContext):
     if keyboard:
         print(keyboard)
         await callback.message.edit_text(
-            "Доступное время для записи:",
+            "Доступное время для записи на собеседование:",
             reply_markup=keyboard
         )
         await state.set_state(UserState.slot_time)

@@ -446,8 +446,8 @@ async def get_available_times(sheet_id: str, selected_date_cell: str) -> InlineK
                 )
                 row.append(button)
                 
-                # Если в ряду уже 2 кнопки, добавляем ряд в клавиатуру
-                if len(row) == 2:
+                # Если в ряду уже 3 кнопки, добавляем ряд в клавиатуру
+                if len(row) == 3:
                     keyboard.append(row)
                     row = []  # Начинаем новый ряд
 
