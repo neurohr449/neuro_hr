@@ -709,38 +709,38 @@ async def process_time_selection(callback: CallbackQuery, state: FSMContext):
         )
 
         candidate_chat_id = callback.message.chat.id
-
+        target_cell = f"{column_letter}{row_number}"
         sheet_range = user_data.get('sheet_range')
         keyboard = InlineKeyboardMarkup(
             inline_keyboard=[
                 [  
                     InlineKeyboardButton(
                         text="❌ Отказать",
-                        callback_data=f"d_{column_letter}_{row_number}_{candidate_chat_id}_0_{sheet_id}_{sheet_range}"
+                        callback_data=f"d_{target_cell}_{candidate_chat_id}_0_{sheet_id}_{sheet_range}"
                     )
                 ],
                 [ 
                     InlineKeyboardButton(
                         text="❌ Отказать и удалить из календаря", 
-                        callback_data=f"d_{column_letter}_{row_number}_{candidate_chat_id}_1_{sheet_id}_{sheet_range}" 
+                        callback_data=f"d_{target_cell}_{candidate_chat_id}_1_{sheet_id}_{sheet_range}" 
                     )
                 ],
                 [ 
                     InlineKeyboardButton(
                         text="✅ Отправить на обучение", 
-                        callback_data=f"d_{column_letter}_{row_number}_{candidate_chat_id}_2_{sheet_id}_{sheet_range}"
+                        callback_data=f"d_{target_cell}_{candidate_chat_id}_2_{sheet_id}_{sheet_range}"
                     )
                 ],
                 [  
                     InlineKeyboardButton(
                         text="✅ Отправить на стажировку", 
-                        callback_data=f"d_{column_letter}_{row_number}_{candidate_chat_id}_3_{sheet_id}_{sheet_range}"
+                        callback_data=f"d_{target_cell}_{candidate_chat_id}_3_{sheet_id}_{sheet_range}"
                     )
                 ],
                 [  
                     InlineKeyboardButton(
                         text="✅ Пригласить на работу", 
-                        callback_data=f"d_{column_letter}_{row_number}_{candidate_chat_id}_4_{sheet_id}_{sheet_range}"
+                        callback_data=f"d_{target_cell}_{candidate_chat_id}_4_{sheet_id}_{sheet_range}"
                     )
                 ]
             ]
@@ -883,7 +883,7 @@ async def handle_decline_handler(callback_query: CallbackQuery, state: FSMContex
         await bot.send_message(chat_id = chat_id,
                                text = f"{decline_text}")
 
-        target_cell = f"{column_letter}{row_number}"
+        
         await  clear_cell(sheet_id, target_cell)
     elif function_id == 2:
         await bot.send_message(chat_id = chat_id,

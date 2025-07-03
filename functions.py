@@ -374,7 +374,8 @@ async def get_available_times(sheet_id: str, selected_date_cell: str) -> InlineK
         # Получаем диапазон времени (A4:A21) и выбранного столбца (B4:B21)
         time_range = f"A4:A21"
         date_range = f"{column_letter}4:{column_letter}21"
-        
+        print(time_range)
+        print(date_range)
         # Получаем объект листа (await, так как функция асинхронная)
         sheet = await get_google_sheet(sheet_id, 0)
         
@@ -416,7 +417,8 @@ async def get_available_times(sheet_id: str, selected_date_cell: str) -> InlineK
         for i in range(len(time_values)):
             time_value = time_values[i][0] if i < len(time_values) and len(time_values[i]) > 0 else None
             date_value = date_values[i][0] if i < len(date_values) and len(date_values[i]) > 0 else None
-            
+            print(time_values)
+            print(date_values)
             # Если есть время и нет записи в дате
             if time_value and not date_value:
                 # Проверяем, нужно ли учитывать текущее время (только для сегодняшней даты)
