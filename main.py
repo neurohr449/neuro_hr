@@ -720,7 +720,7 @@ async def process_time_selection(callback: CallbackQuery, state: FSMContext):
         accept_text=user_data.get('accept_text')
 
         pool= await get_async_connection()
-        action_keyboard = get_action_keyboard(
+        action_keyboard = await get_action_keyboard(
                                                 pool=pool,
                                                 column_letter=column_letter,
                                                 row_number=row_number,
