@@ -724,7 +724,7 @@ async def process_time_selection(callback: CallbackQuery, state: FSMContext, poo
                                                 pool=pool,
                                                 column_letter=column_letter,
                                                 row_number=row_number,
-                                                candidate_chat_id=candidate_chat_id,
+                                                candidate_chat_id=str(candidate_chat_id),
                                                 sheet_id=sheet_id,
                                                 sheet_range=sheet_range,
                                                 decline_text=decline_text,
@@ -1018,6 +1018,7 @@ async def main() -> None:
         await dp.start_polling(bot)
     finally:
         await pool.close()
+        print("Отключаюсь от БД")
 
 if __name__ == "__main__":
     asyncio.run(main())
