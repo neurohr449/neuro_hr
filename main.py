@@ -6,6 +6,7 @@ import json
 from datetime import datetime, timedelta
 import aiohttp
 from aiogram import Bot, Dispatcher, html, Router, BaseMiddleware
+from aiogram import F
 from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
 from aiogram.filters import CommandStart, Command
@@ -18,11 +19,13 @@ from aiogram.filters.command import CommandObject
 import shelve
 import gspread
 import re
+
 from google.oauth2.service_account import Credentials
 from openai import AsyncOpenAI
 from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
 from functions import *
+from database import *
 
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 FAIL_KEYBOARD = InlineKeyboardMarkup(inline_keyboard=[
@@ -168,7 +171,6 @@ async def pd1(callback_query: CallbackQuery, state: FSMContext):
         survey_started=datetime.now(),
         survey_completed=False
     )
-
     asyncio.create_task(check_survey_completion(callback_query.message.chat.id, state))
     
     try:
@@ -559,7 +561,7 @@ async def process_name(message: Message, state: FSMContext):
         user_fio = message.text
         await state.update_data(user_fio=user_fio)
         await state.set_state(UserState.user_resume)
-        await message.answer("Пришлите, пожалуйста, ссылку на ваше резюме.\n\nВзять на резюме ссылку можно по следующей ссылке: https://hh.ru/applicant/resumes")
+        await message.answer("Пришлите, пожалуйста, ссылку на ваше резюме.\n\nВзять на резюме ссылку можно по следующей ссылке:https://hh.ru/applicant/resumes")
 
 @router.message(StateFilter(UserState.user_resume))
 async def process_resume(message: Message, state: FSMContext):
@@ -595,47 +597,26 @@ async def process_resume(message: Message, state: FSMContext):
 
 @router.callback_query(lambda c: c.data.startswith("select_date_"), UserState.slot_day)
 async def process_date_selection(callback: CallbackQuery, state: FSMContext):
-    try:
-        
-        selected_date_cell = callback.data.split("_")[2]
-        user_data = await state.get_data()
-        sheet_id = user_data.get('sheet_id')
-        
-        
-        keyboard = await get_available_times(sheet_id, selected_date_cell)
-        
-        if not keyboard:
-            await callback.answer("Нет свободных слотов")
-            return
-
-        
-        try:
-            
-            await callback.message.edit_text("⌛ Загружаем доступное время...")
-            
-            
-            await asyncio.sleep(1)  
-            
-            
-            await callback.message.edit_text(
-                text="Доступное время для записи:",
-                reply_markup=keyboard
-            )
-            
-        except Exception as e:
-            logging.error(f"Edit message error: {e}")
-            
-            await callback.message.answer(
-                "Доступное время:",
-                reply_markup=keyboard
-            )
-            
-        await state.set_state(UserState.slot_time)
-        
-    except Exception as e:
-        logging.error(f"Full error: {e}")
-        await callback.answer("Произошла ошибка")
+    # Получаем выбранную ячейку даты (например "B2")
+    selected_date_cell = callback.data.split("_")[2]  # "select_date_B2" → "B2"
     
+    # Получаем sheet_id из состояния
+    user_data = await state.get_data()
+    sheet_id = user_data.get('sheet_id')
+    
+    # Получаем клавиатуру с доступным временем
+    keyboard = await get_available_times(sheet_id, selected_date_cell)
+    
+    if keyboard:
+        await callback.message.edit_text(
+            "Доступное время для записи:",
+            reply_markup=keyboard
+        )
+        await state.set_state(UserState.slot_time)
+    else:
+        await callback.answer("К сожалению, на этот день нет свободного времени.")
+    
+    await callback.answer()
 
 
 
@@ -729,51 +710,31 @@ async def process_time_selection(callback: CallbackQuery, state: FSMContext):
             f"{user_data.get('text_5')}", reply_markup=keyboard
         )
 
-        candidate_chat_id = callback.message.chat.id
-        target_cell = f"{column_letter}{row_number}"
-        sheet_range = user_data.get('sheet_range')
-        keyboard = InlineKeyboardMarkup(
-            inline_keyboard=[
-                [  
-                    InlineKeyboardButton(
-                        text="❌ Отказать",
-                        callback_data=f"d_{target_cell}_{candidate_chat_id}_0_{sheet_id}_{sheet_range}"
-                    )
-                ],
-                [ 
-                    InlineKeyboardButton(
-                        text="❌ Отказать и удалить из календаря", 
-                        callback_data=f"d_{target_cell}_{candidate_chat_id}_1_{sheet_id}_{sheet_range}" 
-                    )
-                ],
-                [ 
-                    InlineKeyboardButton(
-                        text="✅ Отправить на обучение", 
-                        callback_data=f"d_{target_cell}_{candidate_chat_id}_2_{sheet_id}_{sheet_range}"
-                    )
-                ],
-                [  
-                    InlineKeyboardButton(
-                        text="✅ Отправить на стажировку", 
-                        callback_data=f"d_{target_cell}_{candidate_chat_id}_3_{sheet_id}_{sheet_range}"
-                    )
-                ],
-                [  
-                    InlineKeyboardButton(
-                        text="✅ Пригласить на работу", 
-                        callback_data=f"d_{target_cell}_{candidate_chat_id}_4_{sheet_id}_{sheet_range}"
-                    )
-                ]
-            ]
-        )
-
         
         chat_id = user_data.get('chat_id')
+        sheet_range = user_data.get('sheet_range')
         await state.set_state(UserState.process_time_change)
-        
+        decline_text=user_data.get('decline_text')
+        learn_text=user_data.get('learn_text')
+        practice_text=user_data.get('practice_text')
+        accept_text=user_data.get('accept_text')
+
+        pool= await get_async_connection()
+        action_keyboard = get_action_keyboard(keyboard = await get_action_keyboard(
+                                                pool=pool,
+                                                column_letter=column_letter,
+                                                row_number=row_number,
+                                                candidate_chat_id=chat_id,
+                                                sheet_id=sheet_id,
+                                                sheet_range=sheet_range,
+                                                decline_text=decline_text,
+                                                learn_text=learn_text,
+                                                practice_text=practice_text,
+                                                accept_text=accept_text
+                                            ))
         await bot.send_message(chat_id=chat_id,
                                 text=f"{record_text}",
-                                reply_markup=keyboard,
+                                reply_markup=action_keyboard,
                                 disable_web_page_preview=True
                                 )
         video = user_data.get('video')
@@ -853,7 +814,6 @@ async def time_change(callback_query: CallbackQuery, state: FSMContext):
         keyboard = await check_empty_cells(sheet_id)
         
         if keyboard:
-                
                 await callback_query.message.answer(
                 "Выберите дату для записи",
                 reply_markup=keyboard
@@ -883,42 +843,120 @@ async def time_change(callback_query: CallbackQuery, state: FSMContext):
 
 
 
-@router.callback_query(lambda c: c.data.startswith("d_"))
-async def handle_decline_handler(callback_query: CallbackQuery, state: FSMContext) -> None:
-    parts = callback_query.data.split("_")
-    column_letter = parts[2].upper()  
-    row_number = parts[3]   
-    chat_id = parts[4]
-    function_id = int(parts[5])  
-    sheet_id = parts[6]
-    sheet_range = parts [7]
-    await get_job_data(sheet_id, sheet_range, state)
-    user_data = await state.get_data()
-    print(user_data)
-    sheet_id = user_data.get('sheet_id')
-    decline_text = user_data.get('text_4')
+
+
+
+
+
+##########################################################################################################################################################################################################
+
+
+async def get_action_keyboard(
+    pool: asyncpg.Pool,
+    *,
+    column_letter: str,
+    row_number: int,
+    candidate_chat_id: int,
+    sheet_id: str,
+    sheet_range: str,
+    decline_text: str,
+    learn_text: str,
+    practice_text: str,
+    accept_text: str
+) -> InlineKeyboardMarkup:
+    """Создаёт клавиатуру с действиями для кандидата"""
+    action_id = await save_action_to_db(
+        pool=pool,
+        column_letter=column_letter,
+        row_number=row_number,
+        candidate_chat_id=candidate_chat_id,
+        sheet_id=sheet_id,
+        sheet_range=sheet_range,
+        decline_text=decline_text,
+        learn_text=learn_text,
+        practice_text=practice_text,
+        accept_text=accept_text
+    )
+
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(
+                    text="❌ Отказать",
+                    callback_data=f"decline_{action_id}"
+                )
+            ],
+            [ 
+                InlineKeyboardButton(
+                    text="❌ Отказать и удалить из календаря", 
+                    callback_data=f"delete_{action_id}" 
+                )
+            ],
+            [ 
+                InlineKeyboardButton(
+                    text="✅ Отправить на обучение", 
+                    callback_data=f"learn_{action_id}"
+                )
+            ],
+            [  
+                InlineKeyboardButton(
+                    text="✅ Отправить на стажировку", 
+                    callback_data=f"practice_{action_id}"
+                )
+            ],
+            [  
+                InlineKeyboardButton(
+                    text="✅ Пригласить на работу", 
+                    callback_data=f"accept_{action_id}"
+                )
+            ]
+        ]
+    )
+
+
+@router.callback_query(F.data.startswith(("decline_", "learn_", "practice_", "accept_", "delete_")))
+async def handle_actions(callback: CallbackQuery, bot: Bot, pool: asyncpg.Pool):
+    action_prefix, action_id_str = callback.data.split("_", 1)
+    action_id = int(action_id_str)
     
-    if function_id == 0:
-        await bot.send_message(chat_id = chat_id,
-                               text = f"{decline_text}")
-    elif function_id == 1:
-        await bot.send_message(chat_id = chat_id,
-                               text = f"{decline_text}")
+    async with pool.acquire() as conn:
+        data = await conn.fetchrow(
+            "SELECT * FROM candidate_actions WHERE action_id = $1", 
+            action_id
+        )
+    
+    if not data:
+        return await callback.answer("Действие не найдено")
+    
+    chat_id = data['candidate_chat_id']
+    column_letter = data['column_letter']
+    row_number = data['row_number']
+    decline_text = data['decline_text']
+    learn_text = data['learn_text']
+    practice_text = data['practice_text']
+    accept_text = data['accept_text']
+    sheet_id = data['sheet_id']
 
-        target_cell=None
-        await  clear_cell(sheet_id, target_cell)
-    elif function_id == 2:
-        await bot.send_message(chat_id = chat_id,
-                               text = f"{decline_text}")
-    elif function_id == 3:
-        await bot.send_message(chat_id = chat_id,
-                               text = f"{decline_text}")
-    elif function_id == 4:
-        await bot.send_message(chat_id = chat_id,
-                               text = f"{decline_text}")
-
-
-
+    if action_prefix == "decline":
+        await bot.send_message(chat_id=chat_id,
+                               text=decline_text)
+    elif action_prefix == "delete":
+        cell_range = f"{column_letter}{row_number}"
+        await clear_cell(sheet_id, cell_range)
+        await bot.send_message(chat_id=chat_id,
+                               text=decline_text)
+    elif action_prefix == "learn":
+        await bot.send_message(chat_id=chat_id,
+                               text=learn_text)
+    elif action_prefix == "practice":
+        await bot.send_message(chat_id=chat_id,
+                               text=practice_text)
+    elif action_prefix == "accept":
+        await bot.send_message(chat_id=chat_id,
+                               text=accept_text)
+    
+    
+    await callback.answer()
 ##########################################################################################################################################################################################################
 async def check_survey_completion(chat_id: int, state: FSMContext):
     await asyncio.sleep(3600)  # Ждем 1 час

@@ -374,8 +374,7 @@ async def get_available_times(sheet_id: str, selected_date_cell: str) -> InlineK
         # Получаем диапазон времени (A4:A21) и выбранного столбца (B4:B21)
         time_range = f"A4:A21"
         date_range = f"{column_letter}4:{column_letter}21"
-        print(time_range)
-        print(date_range)
+        
         # Получаем объект листа (await, так как функция асинхронная)
         sheet = await get_google_sheet(sheet_id, 0)
         
@@ -405,7 +404,7 @@ async def get_available_times(sheet_id: str, selected_date_cell: str) -> InlineK
                 selected_date = datetime.strptime(date_part, "%d.%m.%Y").date()
             except (ValueError, IndexError):
                 pass
-        print(f"selected_date{selected_date}")
+        
         # Получаем текущую дату и время
         now = datetime.now(MOSCOW_TZ)
         current_date = now.date()
@@ -413,48 +412,31 @@ async def get_available_times(sheet_id: str, selected_date_cell: str) -> InlineK
 
         # Создаем клавиатуру с доступным временем
         keyboard = []
-        row = []
-
+        
         for i in range(len(time_values)):
             time_value = time_values[i][0] if i < len(time_values) and len(time_values[i]) > 0 else None
             date_value = date_values[i][0] if i < len(date_values) and len(date_values[i]) > 0 else None
-            print(time_values)
-            print(date_values)
+            
             # Если есть время и нет записи в дате
             if time_value and not date_value:
                 # Проверяем, нужно ли учитывать текущее время (только для сегодняшней даты)
                 if selected_date and selected_date == current_date:
                     try:
                         # Парсим время из таблицы (формат "13:30")
-                        try:
-                            # Если время в формате "9:00" → преобразуем в "09:00"
-                            if len(time_value.split(":")[0]) == 1:
-                                time_value = f"0{time_value}"
-                            slot_time = datetime.strptime(time_value, "%H:%M").replace(tzinfo=MOSCOW_TZ).time()
-                        except ValueError as e:
-                            logging.error(f"Ошибка парсинга времени {time_value}: {e}")
-                            continue
+                        slot_time = datetime.strptime(time_value, "%H:%M").replace(tzinfo=MOSCOW_TZ).time()
                         # Пропускаем время, если оно уже прошло
                         if slot_time < current_time:
                             continue
                     except ValueError:
                         pass  # если не удалось распарсить время, оставляем кнопку
                 
-                button = InlineKeyboardButton(
-                    text=time_value,
-                    callback_data=f"select_time_{column_letter}_{i+4}"
-                )
-                row.append(button)
-                
-                # Если в ряду уже 3 кнопки, добавляем ряд в клавиатуру
-                if len(row) == 3:
-                    keyboard.append(row)
-                    row = []  # Начинаем новый ряд
-
-        # Добавляем последний ряд, если он не пустой
-        if row:
-            keyboard.append(row)
-            print(f"keyboard{keyboard}")
+                keyboard.append([
+                    InlineKeyboardButton(
+                        text=time_value,
+                        callback_data=f"select_time_{column_letter}_{i+4}"  # i+4 соответствует реальной строке
+                    )
+                ])
+        
         return InlineKeyboardMarkup(inline_keyboard=keyboard) if keyboard else None
         
     except Exception as e:
@@ -484,8 +466,8 @@ def parse_interview_datetime(date_str: str, time_str: str) -> datetime:
     date_obj = datetime.strptime(f"{date_part} {time_str}", "%d.%m.%Y %H:%M")
     return date_obj.replace(tzinfo=MOSCOW_TZ)  
 
-async def get_job_data(sheet_id, sheet_range, state: FSMContext):
-    range_name = f"A{sheet_range}:AL{sheet_range}"
+async def get_job_data(sheet_id, sheet_range, state: FSMContext,):
+    range_name = f"A{sheet_range}:AO{sheet_range}"
     value = await get_google_sheet_data(sheet_id, range_name)
     row_data = value[0]
     await state.update_data(
@@ -518,6 +500,12 @@ async def get_job_data(sheet_id, sheet_range, state: FSMContext):
         text_6=row_data[35],
         text_7=row_data[36],
         text_8=row_data[37],
+        
+        decline_text = row_data[33],
+        learn_text = row_data[38],
+        practice_text = row_data[39],
+        accept_text = row_data[40],
+        
         video_1=row_data[22],
         video_2=row_data[23],
         video_3=row_data[24],
