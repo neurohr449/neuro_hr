@@ -718,13 +718,13 @@ async def process_time_selection(callback: CallbackQuery, state: FSMContext):
         learn_text=user_data.get('learn_text')
         practice_text=user_data.get('practice_text')
         accept_text=user_data.get('accept_text')
-
+        candidate_chat_id = callback.message.chat.id
         pool= await get_async_connection()
         action_keyboard = await get_action_keyboard(
                                                 pool=pool,
                                                 column_letter=column_letter,
                                                 row_number=row_number,
-                                                candidate_chat_id=chat_id,
+                                                candidate_chat_id=candidate_chat_id,
                                                 sheet_id=sheet_id,
                                                 sheet_range=sheet_range,
                                                 decline_text=decline_text,
