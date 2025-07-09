@@ -720,7 +720,7 @@ async def process_time_selection(callback: CallbackQuery, state: FSMContext):
         accept_text=user_data.get('accept_text')
 
         pool= await get_async_connection()
-        action_keyboard = get_action_keyboard(keyboard = await get_action_keyboard(
+        action_keyboard = get_action_keyboard(
                                                 pool=pool,
                                                 column_letter=column_letter,
                                                 row_number=row_number,
@@ -731,7 +731,7 @@ async def process_time_selection(callback: CallbackQuery, state: FSMContext):
                                                 learn_text=learn_text,
                                                 practice_text=practice_text,
                                                 accept_text=accept_text
-                                            ))
+                                            )
         await bot.send_message(chat_id=chat_id,
                                 text=f"{record_text}",
                                 reply_markup=action_keyboard,
