@@ -915,10 +915,10 @@ async def get_action_keyboard(
 
 
 @router.callback_query(F.data.startswith(("decline_", "learn_", "practice_", "accept_", "delete_")))
-async def handle_actions(callback: CallbackQuery, bot: Bot, pool: asyncpg.Pool):
+async def handle_actions(callback: CallbackQuery, bot: Bot):
     action_prefix, action_id_str = callback.data.split("_", 1)
     action_id = int(action_id_str)
-    
+    pool = await get_async_connection()
     async with pool.acquire() as conn:
         data = await conn.fetchrow(
             "SELECT * FROM candidate_actions WHERE action_id = $1", 
