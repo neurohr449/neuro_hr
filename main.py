@@ -621,7 +621,7 @@ async def process_date_selection(callback: CallbackQuery, state: FSMContext):
 
 
 @router.callback_query(lambda c: c.data.startswith("select_time_"), UserState.slot_time)
-async def process_time_selection(callback: CallbackQuery, state: FSMContext):
+async def process_time_selection(callback: CallbackQuery, state: FSMContext, pool: asyncpg.Pool):
     try:
         # 1. Разбираем callback данные
         parts = callback.data.split("_")
@@ -719,7 +719,7 @@ async def process_time_selection(callback: CallbackQuery, state: FSMContext):
         practice_text=user_data.get('practice_text')
         accept_text=user_data.get('accept_text')
         candidate_chat_id = callback.message.chat.id
-        pool= await get_async_connection()
+        
         action_keyboard = await get_action_keyboard(
                                                 pool=pool,
                                                 column_letter=column_letter,
@@ -915,10 +915,10 @@ async def get_action_keyboard(
 
 
 @router.callback_query(F.data.startswith(("decline_", "learn_", "practice_", "accept_", "delete_")))
-async def handle_actions(callback: CallbackQuery, bot: Bot):
+async def handle_actions(callback: CallbackQuery, bot: Bot, pool: asyncpg.Pool):
     action_prefix, action_id_str = callback.data.split("_", 1)
     action_id = int(action_id_str)
-    pool = await get_async_connection()
+    
     async with pool.acquire() as conn:
         data = await conn.fetchrow(
             "SELECT * FROM candidate_actions WHERE action_id = $1", 
@@ -957,6 +957,7 @@ async def handle_actions(callback: CallbackQuery, bot: Bot):
     
     
     await callback.answer()
+    
 ##########################################################################################################################################################################################################
 async def check_survey_completion(chat_id: int, state: FSMContext):
     await asyncio.sleep(3600)  # Ждем 1 час
@@ -1004,7 +1005,19 @@ async def main() -> None:
     dp.message.middleware(StateMiddleware())
     bot = Bot(token=BOT_TOKEN, default=DefaultBotProperties(
         parse_mode=ParseMode.HTML))
-    await dp.start_polling(bot)
+    pool = await get_async_connection()
+    dp["pool"] = pool
+    
+    
+    async def get_pool(dispatcher: Dispatcher) -> asyncpg.Pool:
+        return dispatcher["pool"]
+    
+    dp["dependency_overrides"] = {asyncpg.Pool: get_pool}
+
+    try:
+        await dp.start_polling(bot)
+    finally:
+        await pool.close()
 
 if __name__ == "__main__":
     asyncio.run(main())
