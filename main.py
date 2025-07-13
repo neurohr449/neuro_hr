@@ -940,23 +940,28 @@ async def handle_actions(callback: CallbackQuery, bot: Bot, pool: asyncpg.Pool):
     if action_prefix == "decline":
         await bot.send_message(chat_id=chat_id,
                                text=decline_text)
+        await callback.message.answer("Отказ отправлен кандидату")
     elif action_prefix == "delete":
         cell_range = f"{column_letter}{row_number}"
         await clear_cell(sheet_id, cell_range)
         await bot.send_message(chat_id=chat_id,
                                text=decline_text)
+        await callback.message.answer("Отказ отправлен кандидату, запись из таблицы удалена")
     elif action_prefix == "learn":
         await bot.send_message(chat_id=chat_id,
                                text=learn_text)
+        await callback.message.answer("Приглашение на обучение отправлено")
     elif action_prefix == "practice":
         await bot.send_message(chat_id=chat_id,
                                text=practice_text)
+        await callback.message.answer("Приглашение на стажировку отправлено")
     elif action_prefix == "accept":
         await bot.send_message(chat_id=chat_id,
                                text=accept_text)
+        await callback.message.answer("Приглашение на работу отправлено")
     
     
-    await callback.answer()
+    
     
 ##########################################################################################################################################################################################################
 async def check_survey_completion(chat_id: int, state: FSMContext):
