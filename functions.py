@@ -43,34 +43,51 @@ async def get_chatgpt_response(prompt: str) -> str:
 async def handle_transcript(bot: Bot, file_id: str, is_video: bool = False) -> str:
     """Обработка медиафайла и возврат транскрипции"""
     try:
-        file = await bot.get_file(file_id)
+        
         temp_dir = "temp_audio"
         os.makedirs(temp_dir, exist_ok=True)
-        file_path = os.path.join(temp_dir, f"temp_{file_id}")
+        file = await bot.get_file(file_id)
+        input_path = os.path.join(temp_dir, f"input_{file_id}")
+        await bot.download(file, destination=input_path)
+        output_path = os.path.join(temp_dir, f"output_{file_id}.wav")
+        if not is_video:
+            os.system(
+                f"ffmpeg -i {input_path} "
+                f"-acodec pcm_s16le -ar 16000 -ac 1 -y {output_path}"
+            )
+        else:
+            os.system(
+                f"ffmpeg -i {input_path} -vn "
+                f"-acodec pcm_s16le -ar 16000 -ac 1 -y {output_path}"
+            )
 
-        await bot.download(file, destination=file_path)
-        
-        
-        if is_video:
-            audio_path = f"{file_path}.aac"
-            os.system(f"ffmpeg -i {file_path} -vn -acodec copy {audio_path}")
-            os.remove(file_path)  
-            file_path = audio_path
+        if not os.path.exists(output_path):
+            return "Ошибка конвертации аудио"
+
+        if os.path.getsize(output_path) > 24 * 1024 * 1024:
+            return "Файл слишком большой (максимум 24MB)"
         
        
-        with open(file_path, "rb") as audio_file:
+        with open(output_path, "rb") as audio_file:
             transcript = await client.audio.transcriptions.create(
                 file=audio_file,
-                model="whisper-1"
+                model="whisper-1",
+                language="ru"  
             )
-        
-        os.remove(file_path)
         
         return transcript.text
     
     except Exception as e:
-        print(f"Ошибка при транскрипции: {e}")
-        return "Не удалось выполнить транскрипцию"
+        print(f"Transcription error: {e}")
+        return "Не удалось выполнить транскрибацию"
+    
+    finally:
+        for path in [input_path, output_path]:
+            if path and os.path.exists(path):
+                try:
+                    os.remove(path)
+                except:
+                    pass
 
 
 
