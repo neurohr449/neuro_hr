@@ -69,7 +69,9 @@ class UserState(StatesGroup):
     slot_day = State()
     slot_time = State()
     process_time_change = State()
-
+    mail_1 = State()
+    mail_2 = State()
+    mail_3 = State()
 
 
 
