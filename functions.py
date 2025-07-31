@@ -52,12 +52,12 @@ async def handle_transcript(bot: Bot, file_id: str, is_video: bool = False) -> s
         output_path = os.path.join(temp_dir, f"output_{file_id}.wav")
         if not is_video:
             os.system(
-                f"ffmpeg -i {input_path} "
+                f"ffmpeg -v error -i {input_path} "
                 f"-acodec pcm_s16le -ar 16000 -ac 1 -y {output_path}"
             )
         else:
             os.system(
-                f"ffmpeg -i {input_path} -vn "
+                f"ffmpeg -v error -i {input_path} -vn "
                 f"-acodec pcm_s16le -ar 16000 -ac 1 -y {output_path}"
             )
 
