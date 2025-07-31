@@ -500,7 +500,7 @@ async def send_mail(state: FSMContext, bot: Bot):
                 
                 
                 chat = await bot.get_chat(f"@{username}")
-                print(chat)
+                print(chat.id)
                 await bot.send_message(
                     chat_id=chat.id,
                     text=mail_text

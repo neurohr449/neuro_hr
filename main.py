@@ -162,6 +162,17 @@ async def chat_command(message: Message, state: FSMContext):
         parse_mode="HTML"
     )
 
+@router.message(Command("test_username"))
+async def test_username(message: Message, state: FSMContext):
+    username = "@selivants"  
+    try:
+        chat = await bot.get_chat(username)
+        print("Chat ID:", chat.id)  
+    except Exception as e:
+        print("Ошибка:", e)
+
+
+
 @router.message(Command("mail"))
 async def mail_command(message: Message, state: FSMContext):
     await state.set_state(UserState.mail_1)
