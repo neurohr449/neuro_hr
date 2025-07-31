@@ -160,6 +160,52 @@ async def chat_command(message: Message, state: FSMContext):
         parse_mode="HTML"
     )
 
+@router.message(Command("mail"))
+async def mail_command(message: Message, state: FSMContext):
+    await state.set_state(UserState.mail_1)
+    await message.answer("Пришлите ссылку на вашу Google таблицу")
+
+@router.message(StateFilter(UserState.mail_1))
+async def mail_sheet(message: Message, state: FSMContext):
+    mail_sheet_id_raw = message.text
+    parts = mail_sheet_id_raw.split('/')
+    if mail_sheet_id_raw.startswith("http"):
+        mail_sheet_id = parts[5]
+    else:
+        mail_sheet_id = parts[3]
+    if mail_sheet_id:
+        await state.update_data(mail_sheet_id = mail_sheet_id,
+                                mail_sheet = mail_sheet_id_raw)
+        await state.set_state(UserState.mail_2)
+        await message.answer("Пришлите текст рассылки")
+
+@router.message(StateFilter(UserState.mail_2))
+async def mail_text(message: Message, state: FSMContext):
+    mail_text = message.text
+    await state.update_data(mail_text=mail_text)
+    await state.set_state(UserState.mail_3)
+    user_data = await state.get_data()
+    mail_sheet_id = user_data.get('mail_sheet_id')
+    keyboard = InlineKeyboardMarkup(inline_keyboard=[
+            [InlineKeyboardButton(text="Сделать рассылку", callback_data="mail_next")],
+            [InlineKeyboardButton(text="Изменить", callback_data="edit")]
+            ])
+    text = f"Рассылка будет сделана для таблицы: {mail_sheet_id}\n\nТекст рассылки: \n{mail_text}"
+    
+    await message.answer(text=text,reply_markup=keyboard)
+
+@router.callback_query(StateFilter(UserState.mail_3))
+async def mail_start(callback_query: CallbackQuery, state: FSMContext):
+    if callback_query.data == "edit":
+        await state.set_state(UserState.mail_1)
+        await callback_query.message.answer("Пришлите ссылку на вашу Google таблицу")
+    elif callback_query.data == "mail_next":
+        await send_mail(state, bot)
+
+
+
+
+
 
 
 @router.callback_query(StateFilter(UserState.welcome))

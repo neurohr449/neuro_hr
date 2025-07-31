@@ -466,6 +466,80 @@ def parse_interview_datetime(date_str: str, time_str: str) -> datetime:
     date_obj = datetime.strptime(f"{date_part} {time_str}", "%d.%m.%Y %H:%M")
     return date_obj.replace(tzinfo=MOSCOW_TZ)  
 
+
+
+
+async def send_mail(state: FSMContext, bot: Bot):
+    user_data = await state.get_data()
+    mail_sheet_id = user_data.get('mail_sheet_id')
+    mail_text = user_data.get('mail_text')
+    
+    try:
+        worksheet = await get_google_sheet(mail_sheet_id, 2)
+        data = await asyncio.to_thread(worksheet.get_all_values)
+        
+        recipients = []
+        for row in data[1:]:  
+            if len(row) > 1 and row[1].startswith('@'):
+                username = row[1][1:]  
+                recipients.append(username)
+            elif len(row) > 3 and row[3].startswith('https://t.me/'):
+                username = row[3].split('/')[-1]  
+                recipients.append(username)
+        
+        
+        recipients = list(set(recipients))
+        
+        
+        success_count = 0
+        fail_count = 0
+        fail_usernames = []
+        
+        for username in recipients:
+            try:
+                
+                await bot.send_message(
+                    chat_id=f"@{username}",
+                    text=mail_text
+                )
+                success_count += 1
+                await asyncio.sleep(0.5)
+            except Exception as e:
+                fail_count += 1
+                fail_usernames.append(username)
+                print(f"Ошибка при отправке сообщения пользователю @{username}: {e}")
+                continue
+        
+        
+        report = (
+            f"Рассылка завершена!\n\n"
+            f"Успешно отправлено: {success_count}\n"
+            f"Не удалось отправить: {fail_count}\n"
+        )
+        
+        if fail_usernames:
+            report += f"\nНе удалось отправить следующим пользователям:\n" + "\n".join(f"@{u}" for u in fail_usernames)
+        
+        
+        await bot.send_message(
+            chat_id=state.key.chat_id,
+            text=report
+        )
+        
+    except Exception as e:
+        error_msg = f"Произошла ошибка при выполнении рассылки: {e}"
+        print(error_msg)
+        await bot.send_message(
+            chat_id=state.key.chat_id,
+            text=error_msg
+        )
+    finally:
+        await state.clear()
+
+
+
+
+
 async def get_job_data(sheet_id, sheet_range, state: FSMContext,):
     range_name = f"A{sheet_range}:AO{sheet_range}"
     value = await get_google_sheet_data(sheet_id, range_name)
