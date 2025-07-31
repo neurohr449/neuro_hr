@@ -18,6 +18,7 @@ from aiogram.filters.command import CommandObject
 import shelve
 import gspread
 import re
+import aiofiles
 from google.oauth2.service_account import Credentials
 from openai import AsyncOpenAI
 from datetime import datetime
@@ -39,6 +40,36 @@ async def get_chatgpt_response(prompt: str) -> str:
         logging.error(f"OpenAI error: {e}")
         return "Извините, не удалось обработать запрос"  
     
+async def handle_transcript(bot: Bot, file_id: str, is_video: bool = False) -> str:
+    """Обработка медиафайла и возврат транскрипции"""
+    try:
+        file = await bot.get_file(file_id)
+        file_path = f"temp_{file_id}"
+        await file.download(destination_file=file_path)
+        
+        
+        if is_video:
+            audio_path = f"{file_path}.aac"
+            os.system(f"ffmpeg -i {file_path} -vn -acodec copy {audio_path}")
+            os.remove(file_path)  
+            file_path = audio_path
+        
+        # Читаем файл для транскрипции
+        async with aiofiles.open(file_path, 'rb') as audio_file:
+            transcript = await client.audio.transcriptions.create(
+                file=audio_file,
+                model="whisper-1"
+            )
+        
+        os.remove(file_path)
+        
+        return transcript.text
+    
+    except Exception as e:
+        print(f"Ошибка при транскрипции: {e}")
+        return "Не удалось выполнить транскрипцию"
+
+
 
 
 async def get_google_sheet_data(sheet_id: str, range_name: str = "B2:AB2"):

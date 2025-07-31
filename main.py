@@ -527,20 +527,24 @@ async def process_answers(message: Message, state: FSMContext):
     user_data = await state.get_data()
     text = user_data.get('text_1')
     if message.video:
-        video=message.video.file_id
-        await state.update_data(video=video)
+        video = message.video.file_id
+        transcript_text = await handle_transcript(bot, video, is_video=True)
+        await state.update_data(video=video, transcript=transcript_text)
         ans10 = "Видео от кандидата получено"
     elif message.video_note:
         video_note = message.video_note.file_id
-        await state.update_data(video_note=video_note)
+        transcript_text = await handle_transcript(bot, video_note, is_video=True)
+        await state.update_data(video_note=video_note, transcript=transcript_text)
         ans10 = "Видео от кандидата получено"
     elif message.audio:
         audio = message.audio.file_id
-        await state.update_data(audio = audio)
+        transcript_text = await handle_transcript(bot, audio)
+        await state.update_data(audio=audio, transcript=transcript_text)
         ans10 = "Аудио от кандидата получено"
     elif message.voice:
         voice = message.voice.file_id
-        await state.update_data(voice = voice)
+        transcript_text = await handle_transcript(bot, voice)
+        await state.update_data(voice=voice, transcript=transcript_text)
         ans10 = "Аудио от кандидата получено"
     elif message.text:  
         ans10 = message.text
@@ -814,7 +818,10 @@ async def process_time_selection(callback: CallbackQuery, state: FSMContext, poo
         if voice:
             await bot.send_voice(chat_id = chat_id,
                                  voice = voice)
-            
+        transcript_text = user_data.get('transcript')
+        if transcript_text:
+            await bot.send_message(chat_id=chat_id,
+                                   text=transcript_text)
         # 10. Сохраняем данные в Google Sheets (асинхронно)
         success = await write_to_google_sheet(
             sheet_id=sheet_id,
