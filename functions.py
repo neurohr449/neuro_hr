@@ -44,7 +44,10 @@ async def handle_transcript(bot: Bot, file_id: str, is_video: bool = False) -> s
     """Обработка медиафайла и возврат транскрипции"""
     try:
         file = await bot.get_file(file_id)
-        file_path = f"temp_{file_id}"
+        temp_dir = "temp_audio"
+        os.makedirs(temp_dir, exist_ok=True)
+        file_path = os.path.join(temp_dir, f"temp_{file_id}")
+
         await bot.download(file, destination=file_path)
         
         
@@ -54,8 +57,8 @@ async def handle_transcript(bot: Bot, file_id: str, is_video: bool = False) -> s
             os.remove(file_path)  
             file_path = audio_path
         
-        # Читаем файл для транскрипции
-        async with aiofiles.open(file_path, 'rb') as audio_file:
+       
+        with open(file_path, "rb") as audio_file:
             transcript = await client.audio.transcriptions.create(
                 file=audio_file,
                 model="whisper-1"
