@@ -45,7 +45,7 @@ async def handle_transcript(bot: Bot, file_id: str, is_video: bool = False) -> s
     try:
         file = await bot.get_file(file_id)
         file_path = f"temp_{file_id}"
-        await file.download(destination_file=file_path)
+        await bot.download(file, destination=file_path)
         
         
         if is_video:
