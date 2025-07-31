@@ -498,8 +498,10 @@ async def send_mail(state: FSMContext, bot: Bot):
         for username in recipients:
             try:
                 
+                
+                chat = await bot.get_chat(f"@{username}")
                 await bot.send_message(
-                    chat_id=f"@{username}",
+                    chat_id=chat.id,
                     text=mail_text
                 )
                 success_count += 1
