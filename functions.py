@@ -113,7 +113,8 @@ async def write_to_google_sheet(
     interview_date: str = None,
     interview_time: str = None,
     user_score: str = None,
-    qa_data: str = None
+    qa_data: str = None,
+    chat_id: str = None
 ) -> bool:
     """
     Записывает или обновляет данные в Google Sheets с сохранением информации при отказе
@@ -271,7 +272,8 @@ async def write_to_google_sheet(
                 qa_data or "",                 # P Вопросы и ответы
                 current_day,                   # Q День
                 current_month,                 # R Месяц
-                current_year                   # S Год
+                current_year,                  # S Год
+                chat_id
             ]
             await asyncio.to_thread(sheet.append_row, new_row)
         
@@ -478,40 +480,31 @@ async def send_mail(state: FSMContext, bot: Bot):
         worksheet = await get_google_sheet(mail_sheet_id, 2)
         data = await asyncio.to_thread(worksheet.get_all_values)
         
-        recipients = []
-        for row in data[1:]:  
-            if len(row) > 1 and row[1].startswith('@'):
-                username = row[1][1:]  
-                recipients.append(username)
-            elif len(row) > 3 and row[3].startswith('https://t.me/'):
-                username = row[3].split('/')[-1]  
-                recipients.append(username)
-        
-        
-        recipients = list(set(recipients))
-        
         
         success_count = 0
         fail_count = 0
-        fail_usernames = []
+        fail_users  = []
         
-        for username in recipients:
-            try:
+        for row in data[1:]:  
+            if len(row) > 19 and row[19].strip():  
+                try:
+                    chat_id = int(row[19].strip())  
+                    await bot.send_message(
+                        chat_id=chat_id,
+                        text=mail_text
+                    )
+                    success_count += 1
+                    await asyncio.sleep(0.3)  
                 
+                except ValueError:
+                    fail_count += 1
+                    fail_users.append(f"Некорректный chat_id: {row[19]}")
+                    print(f"Некорректный chat_id: {row[19]}")
                 
-                chat = await bot.get_chat(f"@{username}")
-                print(chat.id)
-                await bot.send_message(
-                    chat_id=chat.id,
-                    text=mail_text
-                )
-                success_count += 1
-                await asyncio.sleep(0.5)
-            except Exception as e:
-                fail_count += 1
-                fail_usernames.append(username)
-                print(f"Ошибка при отправке сообщения пользователю @{username}: {e}")
-                continue
+                except Exception as e:
+                    fail_count += 1
+                    fail_users.append(f"chat_id {row[19]}: {str(e)}")
+                    print(f"Ошибка при отправке на chat_id {row[19]}: {e}")
         
         
         report = (
@@ -520,8 +513,10 @@ async def send_mail(state: FSMContext, bot: Bot):
             f"Не удалось отправить: {fail_count}\n"
         )
         
-        if fail_usernames:
-            report += f"\nНе удалось отправить следующим пользователям:\n" + "\n".join(f"@{u}" for u in fail_usernames)
+        if fail_users:
+            report += f"\nОшибки отправки:\n" + "\n".join(fail_users[:10])  
+            if len(fail_users) > 10:
+                report += f"\n...и ещё {len(fail_users) - 10} ошибок"
         
         
         await bot.send_message(

@@ -162,14 +162,7 @@ async def chat_command(message: Message, state: FSMContext):
         parse_mode="HTML"
     )
 
-@router.message(Command("test_username"))
-async def test_username(message: Message, state: FSMContext):
-    username = "@selivants"  
-    try:
-        chat = await bot.get_chat(username)
-        print("Chat ID:", chat.id)  
-    except Exception as e:
-        print("Ошибка:", e)
+
 
 
 
@@ -198,12 +191,12 @@ async def mail_text(message: Message, state: FSMContext):
     await state.update_data(mail_text=mail_text)
     await state.set_state(UserState.mail_3)
     user_data = await state.get_data()
-    mail_sheet_id = user_data.get('mail_sheet_id')
+    mail_sheet = user_data.get('mail_sheet')
     keyboard = InlineKeyboardMarkup(inline_keyboard=[
             [InlineKeyboardButton(text="Сделать рассылку", callback_data="mail_next")],
             [InlineKeyboardButton(text="Изменить", callback_data="edit")]
             ])
-    text = f"Рассылка будет сделана для таблицы: {mail_sheet_id}\n\nТекст рассылки: \n{mail_text}"
+    text = f"Рассылка будет сделана для таблицы: {mail_sheet}\n\nТекст рассылки: \n{mail_text}"
     
     await message.answer(text=text,reply_markup=keyboard)
 
@@ -239,12 +232,14 @@ async def pd1(callback_query: CallbackQuery, state: FSMContext):
             first_name = user.first_name
             company_name = user_data.get('company_name')
             job_name = user_data.get('job_name')
+            chat_id = callback_query.message.chat.id
             user_check = await write_to_google_sheet(
                                 sheet_id = sheet_id, 
                                 username = username,
                                 first_name = first_name,
                                 company_name = company_name,
-                                job_name = job_name
+                                job_name = job_name,
+                                chat_id=chat_id
                          )
             if user_check != False:
                 
@@ -528,6 +523,7 @@ async def q10(message: Message, state: FSMContext):
 
 @router.message(StateFilter(UserState.q10))
 async def process_answers(message: Message, state: FSMContext):
+    chat_id = message.chat.id
     user_data = await state.get_data()
     text = user_data.get('text_1')
     if message.video:
@@ -589,7 +585,8 @@ async def process_answers(message: Message, state: FSMContext):
             qa_data=user_qa,
             company_name = company_name,
             job_name = job_name,
-            user_score=response_score
+            user_score=response_score,
+            chat_id=chat_id
             )
         text_3 = user_data.get('text_3')
         await message.answer(text=text_3)
@@ -610,7 +607,8 @@ async def process_answers(message: Message, state: FSMContext):
         qa_data=user_qa,
         company_name = company_name,
         job_name = job_name,
-        user_score=response_score
+        user_score=response_score,
+        chat_id=chat_id
         )
     
           
@@ -769,7 +767,7 @@ async def process_time_selection(callback: CallbackQuery, state: FSMContext, poo
             f"{user_data.get('text_5')}", reply_markup=keyboard
         )
 
-        
+        user_chat_id = callback.message.chat.id
         chat_id = user_data.get('chat_id')
         sheet_range = user_data.get('sheet_range')
         await state.set_state(UserState.process_time_change)
@@ -832,7 +830,8 @@ async def process_time_selection(callback: CallbackQuery, state: FSMContext, poo
             qa_data=user_data.get('user_qa'),
             job_name=user_data.get('job_name'),
             company_name=user_data.get('company_name'),
-            user_score=user_data.get('response_score')
+            user_score=user_data.get('response_score'),
+            chat_id=user_chat_id
         )
         
         user_data = await state.get_data()
