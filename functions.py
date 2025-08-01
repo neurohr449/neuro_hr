@@ -535,7 +535,7 @@ async def get_vacancies(sheet_id: str) -> list:
                 if company and vacancy:
                     vacancies.append(f"{company} - {vacancy}")
         
-        return list(set(vacancies))  
+        return vacancies
     
     except Exception as e:
         print(f"Ошибка при получении вакансий: {e}")

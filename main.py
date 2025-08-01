@@ -185,15 +185,24 @@ async def mail_sheet(message: Message, state: FSMContext):
             await message.answer("В таблице не найдено вакансий")
             return
         
+        seen = set()
+        unique_vacancies = []
+        for vac in vacancies:
+            if vac not in seen:
+                seen.add(vac)
+                unique_vacancies.append(vac)
+        
+
+
         await state.update_data(
             mail_sheet_id=mail_sheet_id,
             mail_sheet=mail_sheet_id_raw,
-            vacancies=vacancies
+            vacancies=unique_vacancies
         )
         
         keyboard = InlineKeyboardMarkup(inline_keyboard=[
             [InlineKeyboardButton(text=vacancy, callback_data=f"vacancy_{i}")]
-            for i, vacancy in enumerate(vacancies)
+            for i, vacancy in enumerate(unique_vacancies)
         ])
         
         await state.set_state(UserState.select_vacancy)
