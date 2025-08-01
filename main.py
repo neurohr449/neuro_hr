@@ -234,7 +234,13 @@ async def mail_text(message: Message, state: FSMContext):
     await message.answer(text=text, reply_markup=keyboard, disable_web_page_preview=True)
 
 
-
+@router.callback_query(StateFilter(UserState.mail_3))
+async def mail_start(callback_query: CallbackQuery, state: FSMContext):
+    if callback_query.data == "edit":
+        await state.set_state(UserState.mail_1)
+        await callback_query.message.answer("Пришлите ссылку на вашу Google таблицу")
+    elif callback_query.data == "mail_next":
+        await send_mail(state, bot)
 
 
 
