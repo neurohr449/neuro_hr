@@ -72,6 +72,7 @@ class UserState(StatesGroup):
     mail_1 = State()
     mail_2 = State()
     mail_3 = State()
+    select_vacancy = State()
 
 
 
@@ -175,38 +176,62 @@ async def mail_command(message: Message, state: FSMContext):
 async def mail_sheet(message: Message, state: FSMContext):
     mail_sheet_id_raw = message.text
     parts = mail_sheet_id_raw.split('/')
-    if mail_sheet_id_raw.startswith("http"):
-        mail_sheet_id = parts[5]
-    else:
-        mail_sheet_id = parts[3]
+    mail_sheet_id = parts[5] if mail_sheet_id_raw.startswith("http") else parts[3]
+    
     if mail_sheet_id:
-        await state.update_data(mail_sheet_id = mail_sheet_id,
-                                mail_sheet = mail_sheet_id_raw)
+        vacancies = await get_vacancies(mail_sheet_id)
+        
+        if not vacancies:
+            await message.answer("В таблице не найдено вакансий")
+            return
+        
+        await state.update_data(
+            mail_sheet_id=mail_sheet_id,
+            mail_sheet=mail_sheet_id_raw,
+            vacancies=vacancies
+        )
+        
+        keyboard = InlineKeyboardMarkup(inline_keyboard=[
+            [InlineKeyboardButton(text=vacancy, callback_data=f"vacancy_{i}")]
+            for i, vacancy in enumerate(vacancies)
+        ])
+        
+        await state.set_state(UserState.select_vacancy)
+        await message.answer("Выберите вакансию для рассылки:", reply_markup=keyboard)
+
+@router.callback_query(StateFilter(UserState.select_vacancy))
+async def select_vacancy(callback: CallbackQuery, state: FSMContext):
+    if callback.data.startswith("vacancy_"):
+        vacancy_index = int(callback.data.split('_')[1])
+        user_data = await state.get_data()
+        selected_vacancy = user_data['vacancies'][vacancy_index]
+        
+        await state.update_data(selected_vacancy=selected_vacancy)
         await state.set_state(UserState.mail_2)
-        await message.answer("Пришлите текст рассылки")
+        await callback.message.answer(
+            f"Выбрана вакансия: {selected_vacancy}\n\n"
+            "Пришлите текст рассылки"
+        )
 
 @router.message(StateFilter(UserState.mail_2))
 async def mail_text(message: Message, state: FSMContext):
     mail_text = message.text
     await state.update_data(mail_text=mail_text)
     await state.set_state(UserState.mail_3)
-    user_data = await state.get_data()
-    mail_sheet = user_data.get('mail_sheet')
-    keyboard = InlineKeyboardMarkup(inline_keyboard=[
-            [InlineKeyboardButton(text="Сделать рассылку", callback_data="mail_next")],
-            [InlineKeyboardButton(text="Изменить", callback_data="edit")]
-            ])
-    text = f"Рассылка будет сделана для таблицы: {mail_sheet}\n\nТекст рассылки: \n{mail_text}"
     
-    await message.answer(text=text,reply_markup=keyboard, disable_web_page_preview=True)
-
-@router.callback_query(StateFilter(UserState.mail_3))
-async def mail_start(callback_query: CallbackQuery, state: FSMContext):
-    if callback_query.data == "edit":
-        await state.set_state(UserState.mail_1)
-        await callback_query.message.answer("Пришлите ссылку на вашу Google таблицу")
-    elif callback_query.data == "mail_next":
-        await send_mail(state, bot)
+    user_data = await state.get_data()
+    keyboard = InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="Сделать рассылку", callback_data="mail_next")],
+        [InlineKeyboardButton(text="Изменить", callback_data="edit")]
+    ])
+    
+    text = (
+        f"Рассылка будет сделана для вакансии: {user_data['selected_vacancy']}\n"
+        f"Таблица: {user_data['mail_sheet']}\n\n"
+        f"Текст рассылки:\n{mail_text}"
+    )
+    
+    await message.answer(text=text, reply_markup=keyboard, disable_web_page_preview=True)
 
 
 
