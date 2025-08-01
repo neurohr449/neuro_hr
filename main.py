@@ -198,7 +198,7 @@ async def mail_text(message: Message, state: FSMContext):
             ])
     text = f"Рассылка будет сделана для таблицы: {mail_sheet}\n\nТекст рассылки: \n{mail_text}"
     
-    await message.answer(text=text,reply_markup=keyboard)
+    await message.answer(text=text,reply_markup=keyboard, disable_web_page_preview=True)
 
 @router.callback_query(StateFilter(UserState.mail_3))
 async def mail_start(callback_query: CallbackQuery, state: FSMContext):
