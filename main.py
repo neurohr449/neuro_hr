@@ -531,7 +531,7 @@ async def process_answers(message: Message, state: FSMContext):
         video = message.video.file_id
         transcript_text = await handle_transcript(bot, video, is_video=True)
         await state.update_data(video=video, transcript=transcript_text)
-        await message.answer("Подтвердить это видео или записать новое?", 
+        await message.answer("Подтвердить это видео? Для подтверждения нажмите на кнопку ниже или напишите в чат \"Подтвердить\"", 
                           reply_markup=ReplyKeyboardMarkup(
                               keyboard=[
                                   [KeyboardButton(text="Подтвердить")],
@@ -545,7 +545,7 @@ async def process_answers(message: Message, state: FSMContext):
         video_note = message.video_note.file_id
         transcript_text = await handle_transcript(bot, video_note, is_video=True)
         await state.update_data(video_note=video_note, transcript=transcript_text)
-        await message.answer("Подтвердить это видео или записать новое?", 
+        await message.answer("Подтвердить это видео? Для подтверждения нажмите на кнопку ниже или напишите в чат \"Подтвердить\"", 
                           reply_markup=ReplyKeyboardMarkup(
                               keyboard=[
                                   [KeyboardButton(text="Подтвердить")],
@@ -559,7 +559,7 @@ async def process_answers(message: Message, state: FSMContext):
         audio = message.audio.file_id
         transcript_text = await handle_transcript(bot, audio)
         await state.update_data(audio=audio, transcript=transcript_text)
-        await message.answer("Подтвердить это аудио или записать новое?", 
+        await message.answer("Подтвердить это аудио? Для подтверждения нажмите на кнопку ниже или напишите в чат \"Подтвердить\"", 
                           reply_markup=ReplyKeyboardMarkup(
                               keyboard=[
                                   [KeyboardButton(text="Подтвердить")],
@@ -573,7 +573,7 @@ async def process_answers(message: Message, state: FSMContext):
         voice = message.voice.file_id
         transcript_text = await handle_transcript(bot, voice)
         await state.update_data(voice=voice, transcript=transcript_text)
-        await message.answer("Подтвердить это аудио или записать новое?", 
+        await message.answer("Подтвердить это аудио? Для подтверждения нажмите на кнопку ниже или напишите в чат \"Подтвердить\"", 
                           reply_markup=ReplyKeyboardMarkup(
                               keyboard=[
                                   [KeyboardButton(text="Подтвердить")],
@@ -584,10 +584,10 @@ async def process_answers(message: Message, state: FSMContext):
         return
     
     elif message.text:  
-        if message.text == "Подтвердить":
+        if message.text == "Подтвердить" or message.text == "подтвердить":
             ans10 = "Кандидат отправил медиафайл"
             await state.update_data(ans10=ans10)
-            await message.answer("Спасибо!", reply_markup=ReplyKeyboardRemove())
+
         elif message.text == "Записать новое":
             await message.answer("Отправьте новое медиа", reply_markup=ReplyKeyboardRemove())
             return
