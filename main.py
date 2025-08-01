@@ -526,35 +526,81 @@ async def process_answers(message: Message, state: FSMContext):
     chat_id = message.chat.id
     user_data = await state.get_data()
     text = user_data.get('text_1')
+    
     if message.video:
         video = message.video.file_id
         transcript_text = await handle_transcript(bot, video, is_video=True)
         await state.update_data(video=video, transcript=transcript_text)
-        ans10 = "Видео от кандидата получено"
+        await message.answer("Подтвердить это видео или записать новое?", 
+                          reply_markup=ReplyKeyboardMarkup(
+                              keyboard=[
+                                  [KeyboardButton(text="Подтвердить")],
+                                  [KeyboardButton(text="Записать новое")]
+                              ],
+                              resize_keyboard=True
+                          ))
+        return
+    
     elif message.video_note:
         video_note = message.video_note.file_id
         transcript_text = await handle_transcript(bot, video_note, is_video=True)
         await state.update_data(video_note=video_note, transcript=transcript_text)
-        ans10 = "Видео от кандидата получено"
+        await message.answer("Подтвердить это видео или записать новое?", 
+                          reply_markup=ReplyKeyboardMarkup(
+                              keyboard=[
+                                  [KeyboardButton(text="Подтвердить")],
+                                  [KeyboardButton(text="Записать новое")]
+                              ],
+                              resize_keyboard=True
+                          ))
+        return
+    
     elif message.audio:
         audio = message.audio.file_id
         transcript_text = await handle_transcript(bot, audio)
         await state.update_data(audio=audio, transcript=transcript_text)
-        ans10 = "Аудио от кандидата получено"
+        await message.answer("Подтвердить это аудио или записать новое?", 
+                          reply_markup=ReplyKeyboardMarkup(
+                              keyboard=[
+                                  [KeyboardButton(text="Подтвердить")],
+                                  [KeyboardButton(text="Записать новое")]
+                              ],
+                              resize_keyboard=True
+                          ))
+        return
+    
     elif message.voice:
         voice = message.voice.file_id
         transcript_text = await handle_transcript(bot, voice)
         await state.update_data(voice=voice, transcript=transcript_text)
-        ans10 = "Аудио от кандидата получено"
+        await message.answer("Подтвердить это аудио или записать новое?", 
+                          reply_markup=ReplyKeyboardMarkup(
+                              keyboard=[
+                                  [KeyboardButton(text="Подтвердить")],
+                                  [KeyboardButton(text="Записать новое")]
+                              ],
+                              resize_keyboard=True
+                          ))
+        return
+    
     elif message.text:  
-        ans10 = message.text
+        if message.text == "Подтвердить":
+            ans10 = "Кандидат отправил медиафайл"
+            await state.update_data(ans10=ans10)
+            await message.answer("Спасибо!", reply_markup=ReplyKeyboardRemove())
+        elif message.text == "Записать новое":
+            await message.answer("Отправьте новое медиа", reply_markup=ReplyKeyboardRemove())
+            return
+        else:
+            ans10 = message.text
+            await state.update_data(ans10=ans10)
     else:
         ans10 = "Неизвестный формат сообщения"
-    await state.update_data(ans10=ans10)
-    user_data = await state.get_data()
+        await state.update_data(ans10=ans10)
+
     text = user_data.get('text_2')
-    await message.answer(f"{text}")
-    await state.update_data(survey_completed = True)
+    await message.answer(f"{text}", reply_markup=ReplyKeyboardRemove())
+    await state.update_data(survey_completed=True)
     
     sheet_id = user_data.get('sheet_id')
     promt = f"Ты HR менеджер с опытом более 30 лет в найме, поиске и обучении персонала, с учетом всего своего опыта, чтобы в будущем подобрать кандидата для нашей вакансии: {user_data.get('job_name')}, тебе надо дать оценку ответам на вопросы по стобальной шкале и выдать общий балл по кандидату. Не нужно давать комментарий или писать любые буквы, нужно строго только одно число с общим баллом. (Обязательно без спецсимволов, например точки). Для принятия решения сравни текст вакансии {user_data.get('job_text')}, портрет кандидата {user_data.get('portrait')} и вопросы и ответы пользователя который надо оценить и написать. Вопрос 1: {user_data.get('q1')}, ответ: {user_data.get('ans1')}; Вопрос 2: {user_data.get('q2')}, ответ: {user_data.get('ans2')}; Вопрос 3: {user_data.get('q3')}, ответ: {user_data.get('ans3')}; Вопрос 4: {user_data.get('q4')}, ответ: {user_data.get('ans4')}; Вопрос 5: {user_data.get('q5')}, ответ: {user_data.get('ans5')}; Вопрос 6: {user_data.get('q6')}, ответ: {user_data.get('ans6')}; Вопрос 7:{user_data.get('q7')}, ответ: {user_data.get('ans7')}; Вопрос 8: {user_data.get('q8')}, ответ: {user_data.get('ans8')}; Вопрос 9: {user_data.get('q9')}, ответ: {user_data.get('ans9')}; Вопрос 10:{user_data.get('q10')}, ответ: {user_data.get('ans10')}. Дополнительно если в тексте меньше 10 вопросов, то последний ответ будет для крайнего вопроса"
