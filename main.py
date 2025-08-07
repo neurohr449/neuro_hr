@@ -348,7 +348,7 @@ async def pd2(callback_query: CallbackQuery, state: FSMContext):
             keyboard = InlineKeyboardMarkup(inline_keyboard=[
             [InlineKeyboardButton(text="Продолжить", callback_data="next")]
             ])
-            media_url = user_data.get('video_1')
+            media_url = user_data.get('video_2')
             media_sent = False
             if not media_sent:
                 try:
@@ -396,7 +396,7 @@ async def pd3(callback_query: CallbackQuery, state: FSMContext):
             keyboard = InlineKeyboardMarkup(inline_keyboard=[
             [InlineKeyboardButton(text="Продолжить", callback_data="next")]
             ])
-            media_url = user_data.get('video_1')
+            media_url = user_data.get('video_3')
             media_sent = False
             if not media_sent:
                 try:
@@ -444,7 +444,7 @@ async def pd4(callback_query: CallbackQuery, state: FSMContext):
             keyboard = InlineKeyboardMarkup(inline_keyboard=[
             [InlineKeyboardButton(text="Продолжить", callback_data="next")]
             ])
-            media_url = user_data.get('video_1')
+            media_url = user_data.get('video_4')
             media_sent = False
             if not media_sent:
                 try:
@@ -493,7 +493,7 @@ async def pd5(callback_query: CallbackQuery, state: FSMContext):
             keyboard = InlineKeyboardMarkup(inline_keyboard=[
             [InlineKeyboardButton(text="Продолжить", callback_data="next")]
             ])
-            media_url = user_data.get('video_1')
+            media_url = user_data.get('video_5')
             media_sent = False
             if not media_sent:
                 try:
@@ -1237,7 +1237,7 @@ async def handle_actions(callback: CallbackQuery, bot: Bot, pool: asyncpg.Pool):
     
 ##########################################################################################################################################################################################################
 async def check_survey_completion(chat_id: int, state: FSMContext):
-    await asyncio.sleep(3600)  # Ждем 1 час
+    await asyncio.sleep(3600)  
     
     data = await state.get_data()
     if not data.get("survey_completed", False):
@@ -1249,6 +1249,7 @@ async def check_survey_completion(chat_id: int, state: FSMContext):
 
 async def send_reminder(chat_id: int, text: str):
     await bot.send_message(chat_id, text)
+
 
 
 async def send_reminder_at_time(chat_id: int, time_utc: datetime, text: str):
