@@ -290,10 +290,11 @@ async def pd1(callback_query: CallbackQuery, state: FSMContext):
                 if text:
                     match = re.search(TELEGRAM_VIDEO_PATTERN, user_data.get('video_1'))
                     if match:
-                        media_url = user_data.get('video_1')           
+                                   
                         keyboard = InlineKeyboardMarkup(inline_keyboard=[
                         [InlineKeyboardButton(text="Продолжить", callback_data="next")]
                         ])
+                        media_url = user_data.get('video_1')
                         media_sent = False
                         if not media_sent:
                             try:
@@ -347,7 +348,28 @@ async def pd2(callback_query: CallbackQuery, state: FSMContext):
             keyboard = InlineKeyboardMarkup(inline_keyboard=[
             [InlineKeyboardButton(text="Продолжить", callback_data="next")]
             ])
-            await callback_query.message.answer_video(video=user_data.get('video_2'))
+            media_url = user_data.get('video_1')
+            media_sent = False
+            if not media_sent:
+                try:
+                    await callback_query.message.answer_video(video=media_url)
+                    media_sent = True
+                except TelegramBadRequest:
+                    pass
+
+            if not media_sent:
+                try:
+                    await callback_query.message.answer_photo(photo=media_url)
+                    media_sent = True
+                except TelegramBadRequest:
+                    pass
+
+            if not media_sent:
+                try:
+                    await callback_query.message.answer_audio(audio=media_url)
+                    media_sent = True
+                except TelegramBadRequest:
+                    pass
             await callback_query.message.answer(text=f"{user_data.get('pd2')}", reply_markup = keyboard)
             await state.set_state(UserState.pd2)
             await callback_query.answer()
@@ -374,7 +396,28 @@ async def pd3(callback_query: CallbackQuery, state: FSMContext):
             keyboard = InlineKeyboardMarkup(inline_keyboard=[
             [InlineKeyboardButton(text="Продолжить", callback_data="next")]
             ])
-            await callback_query.message.answer_video(video=user_data.get('video_3'))
+            media_url = user_data.get('video_1')
+            media_sent = False
+            if not media_sent:
+                try:
+                    await callback_query.message.answer_video(video=media_url)
+                    media_sent = True
+                except TelegramBadRequest:
+                    pass
+
+            if not media_sent:
+                try:
+                    await callback_query.message.answer_photo(photo=media_url)
+                    media_sent = True
+                except TelegramBadRequest:
+                    pass
+
+            if not media_sent:
+                try:
+                    await callback_query.message.answer_audio(audio=media_url)
+                    media_sent = True
+                except TelegramBadRequest:
+                    pass
             await callback_query.message.answer(text=f"{user_data.get('pd3')}", reply_markup = keyboard)
             await state.set_state(UserState.pd3)
             await callback_query.answer()
@@ -401,7 +444,28 @@ async def pd4(callback_query: CallbackQuery, state: FSMContext):
             keyboard = InlineKeyboardMarkup(inline_keyboard=[
             [InlineKeyboardButton(text="Продолжить", callback_data="next")]
             ])
-            await callback_query.message.answer_video(video=user_data.get('video_4'))
+            media_url = user_data.get('video_1')
+            media_sent = False
+            if not media_sent:
+                try:
+                    await callback_query.message.answer_video(video=media_url)
+                    media_sent = True
+                except TelegramBadRequest:
+                    pass
+
+            if not media_sent:
+                try:
+                    await callback_query.message.answer_photo(photo=media_url)
+                    media_sent = True
+                except TelegramBadRequest:
+                    pass
+
+            if not media_sent:
+                try:
+                    await callback_query.message.answer_audio(audio=media_url)
+                    media_sent = True
+                except TelegramBadRequest:
+                    pass
             await callback_query.message.answer(text=f"{user_data.get('pd4')}", reply_markup = keyboard)
             await state.set_state(UserState.pd4)
             await callback_query.answer()
@@ -429,7 +493,28 @@ async def pd5(callback_query: CallbackQuery, state: FSMContext):
             keyboard = InlineKeyboardMarkup(inline_keyboard=[
             [InlineKeyboardButton(text="Продолжить", callback_data="next")]
             ])
-            await callback_query.message.answer_video(video=user_data.get('video_5'))
+            media_url = user_data.get('video_1')
+            media_sent = False
+            if not media_sent:
+                try:
+                    await callback_query.message.answer_video(video=media_url)
+                    media_sent = True
+                except TelegramBadRequest:
+                    pass
+
+            if not media_sent:
+                try:
+                    await callback_query.message.answer_photo(photo=media_url)
+                    media_sent = True
+                except TelegramBadRequest:
+                    pass
+
+            if not media_sent:
+                try:
+                    await callback_query.message.answer_audio(audio=media_url)
+                    media_sent = True
+                except TelegramBadRequest:
+                    pass
             await callback_query.message.answer(text=f"{user_data.get('pd5')}", reply_markup = keyboard)
             await state.set_state(UserState.pd5)
             await callback_query.answer()
