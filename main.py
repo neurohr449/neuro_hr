@@ -294,6 +294,7 @@ async def pd1(callback_query: CallbackQuery, state: FSMContext):
                         keyboard = InlineKeyboardMarkup(inline_keyboard=[
                         [InlineKeyboardButton(text="Продолжить", callback_data="next")]
                         ])
+                        media_sent = False
                         if not media_sent:
                             try:
                                 await callback_query.message.answer_video(video=media_url)
