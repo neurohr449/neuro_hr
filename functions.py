@@ -31,7 +31,7 @@ client = AsyncOpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 async def get_chatgpt_response(prompt: str) -> str:
     try:
         response = await client.chat.completions.create(
-            model="gpt-4o",
+            model="gpt-4.1",
             messages=[{"role": "user", "content": prompt}],
             temperature=0.7  
         )
