@@ -16,9 +16,11 @@ from aiogram.fsm.context import FSMContext
 from aiogram.fsm.storage.memory import MemoryStorage
 from aiogram.types import Message, InlineKeyboardButton, InlineKeyboardMarkup, CallbackQuery, ReplyKeyboardMarkup, KeyboardButton, ReplyKeyboardRemove
 from aiogram.filters.command import CommandObject
+from aiogram.exceptions import TelegramBadRequest
 import shelve
 import gspread
 import re
+
 
 from google.oauth2.service_account import Credentials
 from openai import AsyncOpenAI
@@ -287,11 +289,32 @@ async def pd1(callback_query: CallbackQuery, state: FSMContext):
                 text = user_data.get('pd1')
                 if text:
                     match = re.search(TELEGRAM_VIDEO_PATTERN, user_data.get('video_1'))
-                    if match:           
+                    if match:
+                        media_url = user_data.get('video_1')           
                         keyboard = InlineKeyboardMarkup(inline_keyboard=[
                         [InlineKeyboardButton(text="Продолжить", callback_data="next")]
                         ])
-                        await callback_query.message.answer_video(video=user_data.get('video_1'))
+                        if not media_sent:
+                            try:
+                                await callback_query.message.answer_video(video=media_url)
+                                media_sent = True
+                            except TelegramBadRequest:
+                                pass
+
+                        if not media_sent:
+                            try:
+                                await callback_query.message.answer_photo(photo=media_url)
+                                media_sent = True
+                            except TelegramBadRequest:
+                                pass
+
+                        if not media_sent:
+                            try:
+                                await callback_query.message.answer_audio(audio=media_url)
+                                media_sent = True
+                            except TelegramBadRequest:
+                                pass
+
                         await callback_query.message.answer(text=f"{user_data.get('pd1')}", reply_markup = keyboard)
                         await state.set_state(UserState.pd1)
                         await callback_query.answer()
