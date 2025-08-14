@@ -187,10 +187,10 @@ async def write_to_google_sheet(
     :return: True если запись успешна, False при ошибке
     """
     try:
-        # Проверка обязательного поля username
-        if not username:
-            print("Ошибка: username обязателен")
-            return False
+        # # Проверка обязательного поля username
+        # if not username:
+        #     print("Ошибка: username обязателен")
+        #     return False
 
         tz = ZoneInfo('Europe/Moscow')
         now = datetime.now(tz)
