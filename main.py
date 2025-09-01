@@ -5,7 +5,7 @@ import os
 import json
 from datetime import datetime, timedelta
 import aiohttp
-from aiogram import Bot, Dispatcher, html, Router, BaseMiddleware
+from aiogram import Bot, Dispatcher, html, Router, BaseMiddleware, types
 from aiogram import F
 from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
@@ -20,7 +20,8 @@ from aiogram.exceptions import TelegramBadRequest
 import shelve
 import gspread
 import re
-
+from logging.handlers import TimedRotatingFileHandler
+from pathlib import Path
 
 from google.oauth2.service_account import Credentials
 from openai import AsyncOpenAI
@@ -28,7 +29,7 @@ from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
 from functions import *
 from database import *
-from logger import *
+
 
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 FAIL_KEYBOARD = InlineKeyboardMarkup(inline_keyboard=[
@@ -39,7 +40,32 @@ MOSCOW_TZ = ZoneInfo("Europe/Moscow")
 SERVER_TZ = ZoneInfo("UTC")
 TELEGRAM_VIDEO_PATTERN = r'https://t\.me/'
 
-logger = setup_advanced_logging()
+
+log_dir = Path("logs")
+log_dir.mkdir(exist_ok=True)
+
+
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    datefmt='%Y-%m-%d %H:%M:%S',
+    handlers=[
+        logging.StreamHandler(sys.stdout),  
+        TimedRotatingFileHandler(
+            filename=str(log_dir / 'bot.log'),  
+            when='midnight',     
+            interval=1,          
+            backupCount=7,       
+            encoding='utf-8',
+            utc=False            
+        )
+    ]
+)
+
+
+logger = logging.getLogger("neuro_hr")
+
+
 bot = Bot(token=BOT_TOKEN, default=DefaultBotProperties(
     parse_mode=ParseMode.HTML))
 storage = MemoryStorage()
@@ -1059,8 +1085,8 @@ async def process_date_selection(callback: CallbackQuery, state: FSMContext):
         await callback.answer()
     except Exception as e:
             logger.error(
-                f"Error for user {message.from_user.id}: {e}\n"
-                f"Message: {message.text}"
+                f"Error for user {callback.from_user.id}: {e}\n"
+                f"Message: {callback.text}"
             )
 
 
