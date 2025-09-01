@@ -147,15 +147,7 @@ async def command_start_handler(message: Message, command: CommandObject, state:
                 f"Message: {message.text}"
             )
 
-@router.message(Command('test_log'))
-async def test_logging(message: types.Message):
-    """Тестирование логирования в Railway"""
-    logger.debug("DEBUG сообщение")
-    logger.info("INFO сообщение - это НЕ ошибка!")
-    logger.warning("WARNING сообщение")
-    logger.error("ERROR сообщение - это настоящая ошибка")
-    
-    await message.answer("Проверьте логи в Railway. Сообщения INFO не должны быть красными!")
+
 
 @router.callback_query(lambda c: c.data == 'notification')
 async def notification_cb_handler(callback_query: CallbackQuery, state: FSMContext) -> None:
