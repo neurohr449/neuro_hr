@@ -29,7 +29,7 @@ from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
 from functions import *
 from database import *
-from logger import *
+
 
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 FAIL_KEYBOARD = InlineKeyboardMarkup(inline_keyboard=[
