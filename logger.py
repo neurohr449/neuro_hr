@@ -1,4 +1,5 @@
 import logging
+import sys
 from logging.handlers import TimedRotatingFileHandler
 import os
 from pathlib import Path
@@ -20,17 +21,14 @@ class DailyRotatingFileHandler(TimedRotatingFileHandler):
             atTime=atTime
         )
 
-def setup_advanced_logging():
+def setup_bot_logging():
     logger = logging.getLogger("neuro_hr")
     logger.setLevel(logging.INFO)
-    
- 
     logger.handlers.clear()
+    logger.propagate = False
     
-    formatter = logging.Formatter(
-        '%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-        datefmt='%Y-%m-%d %H:%M:%S'
-    )
+    # Минималистичный формат для Railway
+    formatter = logging.Formatter('%(levelname)s - %(message)s')
     
     file_handler = DailyRotatingFileHandler(
         'bot.log', 
@@ -40,15 +38,11 @@ def setup_advanced_logging():
         encoding='utf-8'
     )
     file_handler.setFormatter(formatter)
-    file_handler.suffix = "%Y-%m-%d"
     
-    console_handler = logging.StreamHandler()
+    console_handler = logging.StreamHandler(sys.stdout)
     console_handler.setFormatter(formatter)
     
-
     logger.addHandler(file_handler)
     logger.addHandler(console_handler)
-    
-    logger.propagate = False
     
     return logger

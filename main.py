@@ -5,7 +5,7 @@ import os
 import json
 from datetime import datetime, timedelta
 import aiohttp
-from aiogram import Bot, Dispatcher, html, Router, BaseMiddleware
+from aiogram import Bot, Dispatcher, html, Router, BaseMiddleware, types
 from aiogram import F
 from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
@@ -39,7 +39,7 @@ MOSCOW_TZ = ZoneInfo("Europe/Moscow")
 SERVER_TZ = ZoneInfo("UTC")
 TELEGRAM_VIDEO_PATTERN = r'https://t\.me/'
 
-logger = setup_advanced_logging()
+logger = setup_bot_logging()
 bot = Bot(token=BOT_TOKEN, default=DefaultBotProperties(
     parse_mode=ParseMode.HTML))
 storage = MemoryStorage()
@@ -121,7 +121,15 @@ async def command_start_handler(message: Message, command: CommandObject, state:
                 f"Message: {message.text}"
             )
 
-
+@router.message(commands=['test_log'])
+async def test_logging(message: types.Message):
+    """Тестирование логирования в Railway"""
+    logger.debug("DEBUG сообщение")
+    logger.info("INFO сообщение - это НЕ ошибка!")
+    logger.warning("WARNING сообщение")
+    logger.error("ERROR сообщение - это настоящая ошибка")
+    
+    await message.answer("Проверьте логи в Railway. Сообщения INFO не должны быть красными!")
 
 @router.callback_query(lambda c: c.data == 'notification')
 async def notification_cb_handler(callback_query: CallbackQuery, state: FSMContext) -> None:
@@ -1059,8 +1067,8 @@ async def process_date_selection(callback: CallbackQuery, state: FSMContext):
         await callback.answer()
     except Exception as e:
             logger.error(
-                f"Error for user {message.from_user.id}: {e}\n"
-                f"Message: {message.text}"
+                f"Error for user {callback.from_user.id}: {e}\n"
+                f"Message: {callback.text}"
             )
 
 
