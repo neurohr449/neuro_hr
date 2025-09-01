@@ -78,7 +78,8 @@ async def handle_transcript(bot: Bot, file_id: str, is_video: bool = False) -> s
         return transcript.text
     
     except Exception as e:
-        print(f"Transcription error: {e}")
+        
+        logging.error(f"Transcription error: {e}")
         return "Не удалось выполнить транскрибацию"
     
     finally:
@@ -330,7 +331,7 @@ async def write_to_google_sheet(
         
         return True
     except Exception as e:
-        print(f"Ошибка записи в Google Sheets: {e}")
+        logging.error(f"Ошибка записи в Google Sheets: {e}")
         return False
 
 
@@ -510,7 +511,7 @@ async def clear_cell(sheet_id: str, cell_range: str) -> bool:
         await asyncio.to_thread(sheet.update, cell_range, [['']])  # Записываем пустую строку
         return True
     except Exception as e:
-        print(f"Ошибка очистки ячейки: {e}")
+        logging.error(f"Ошибка очистки ячейки: {e}")
         return False
 
 def parse_interview_datetime(date_str: str, time_str: str) -> datetime:
@@ -538,7 +539,7 @@ async def get_vacancies(sheet_id: str) -> list:
         return vacancies
     
     except Exception as e:
-        print(f"Ошибка при получении вакансий: {e}")
+        logging.error(f"Ошибка при получении вакансий: {e}")
         return []
     
 
@@ -599,7 +600,7 @@ async def send_mail(state: FSMContext, bot: Bot):
     
     except Exception as e:
         error_msg = f"Произошла ошибка при выполнении рассылки: {e}"
-        print(error_msg)
+        logging.error(error_msg)
         await bot.send_message(
             chat_id=state.key.chat_id,
             text=error_msg
@@ -611,49 +612,51 @@ async def send_mail(state: FSMContext, bot: Bot):
 
 
 async def get_job_data(sheet_id, sheet_range, state: FSMContext,):
-    range_name = f"A{sheet_range}:AO{sheet_range}"
-    value = await get_google_sheet_data(sheet_id, range_name)
-    row_data = value[0]
-    await state.update_data(
-        pd1=row_data[7],
-        pd2=row_data[8],
-        pd3=row_data[9],
-        pd4=row_data[10],
-        pd5=row_data[11],
-        q1=row_data[12],
-        q2=row_data[13],
-        q3=row_data[14],
-        q4=row_data[15],
-        q5=row_data[16],
-        q6=row_data[17],
-        q7=row_data[18],
-        q8=row_data[19],
-        q9=row_data[20],
-        q10=row_data[21],
-        portrait=row_data[27],
-        job_text=row_data[28],
-        company_name=row_data[4],
-        job_name=row_data[5],
-        score = row_data[6],
-        chat_id=row_data[1],
-        text_1=row_data[30],
-        text_2=row_data[31],
-        text_3=row_data[32],
-        text_4=row_data[33],
-        text_5=row_data[34],
-        text_6=row_data[35],
-        text_7=row_data[36],
-        text_8=row_data[37],
-        
-        decline_text = row_data[33],
-        learn_text = row_data[38],
-        practice_text = row_data[39],
-        accept_text = row_data[40],
-        
-        video_1=row_data[22],
-        video_2=row_data[23],
-        video_3=row_data[24],
-        video_4=row_data[25],
-        video_5=row_data[26]
-        )
-    
+    try:
+        range_name = f"A{sheet_range}:AO{sheet_range}"
+        value = await get_google_sheet_data(sheet_id, range_name)
+        row_data = value[0]
+        await state.update_data(
+            pd1=row_data[7],
+            pd2=row_data[8],
+            pd3=row_data[9],
+            pd4=row_data[10],
+            pd5=row_data[11],
+            q1=row_data[12],
+            q2=row_data[13],
+            q3=row_data[14],
+            q4=row_data[15],
+            q5=row_data[16],
+            q6=row_data[17],
+            q7=row_data[18],
+            q8=row_data[19],
+            q9=row_data[20],
+            q10=row_data[21],
+            portrait=row_data[27],
+            job_text=row_data[28],
+            company_name=row_data[4],
+            job_name=row_data[5],
+            score = row_data[6],
+            chat_id=row_data[1],
+            text_1=row_data[30],
+            text_2=row_data[31],
+            text_3=row_data[32],
+            text_4=row_data[33],
+            text_5=row_data[34],
+            text_6=row_data[35],
+            text_7=row_data[36],
+            text_8=row_data[37],
+            
+            decline_text = row_data[33],
+            learn_text = row_data[38],
+            practice_text = row_data[39],
+            accept_text = row_data[40],
+            
+            video_1=row_data[22],
+            video_2=row_data[23],
+            video_3=row_data[24],
+            video_4=row_data[25],
+            video_5=row_data[26]
+            )
+    except Exception as e:
+        logging.error(f"Произошла ошибка при получении текстов: {e}")
