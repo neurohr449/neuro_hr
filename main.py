@@ -121,7 +121,7 @@ async def command_start_handler(message: Message, command: CommandObject, state:
                 f"Message: {message.text}"
             )
 
-@router.message(commands=['test_log'])
+@router.message(Command('test_log'))
 async def test_logging(message: types.Message):
     """Тестирование логирования в Railway"""
     logger.debug("DEBUG сообщение")
