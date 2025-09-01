@@ -27,7 +27,7 @@ def setup_bot_logging():
     logger.handlers.clear()
     logger.propagate = False
     
-    # Минималистичный формат для Railway
+
     formatter = logging.Formatter('%(levelname)s - %(message)s')
     
     file_handler = DailyRotatingFileHandler(
@@ -38,9 +38,11 @@ def setup_bot_logging():
         encoding='utf-8'
     )
     file_handler.setFormatter(formatter)
-    
+    file_handler.setLevel(logging.DEBUG)
+
     console_handler = logging.StreamHandler(sys.stdout)
     console_handler.setFormatter(formatter)
+    console_handler.setLevel(logging.DEBUG) 
     
     logger.addHandler(file_handler)
     logger.addHandler(console_handler)
