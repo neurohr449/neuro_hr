@@ -1372,50 +1372,55 @@ async def get_action_keyboard(
 @router.callback_query(F.data.startswith(("decline_", "learn_", "practice_", "accept_", "delete_")))
 async def handle_actions(callback: CallbackQuery, bot: Bot, pool: asyncpg.Pool):
     logger.info(f"User {callback.from_user.id} sent callback {callback.data}")
-    action_prefix, action_id_str = callback.data.split("_", 1)
-    action_id = int(action_id_str)
-    
-    async with pool.acquire() as conn:
-        data = await conn.fetchrow(
-            "SELECT * FROM candidate_actions WHERE action_id = $1", 
-            action_id
-        )
-    
-    if not data:
-        return await callback.answer("Действие не найдено")
-    
-    chat_id = data['candidate_chat_id']
-    column_letter = data['column_letter']
-    row_number = data['row_number']
-    decline_text = data['decline_text']
-    learn_text = data['learn_text']
-    practice_text = data['practice_text']
-    accept_text = data['accept_text']
-    sheet_id = data['sheet_id']
+    try:
+        action_prefix, action_id_str = callback.data.split("_", 1)
+        action_id = int(action_id_str)
+        
+        async with pool.acquire() as conn:
+            data = await conn.fetchrow(
+                "SELECT * FROM candidate_actions WHERE action_id = $1", 
+                action_id
+            )
+        
+        if not data:
+            return await callback.answer("Действие не найдено")
+        
+        chat_id = data['candidate_chat_id']
+        column_letter = data['column_letter']
+        row_number = data['row_number']
+        decline_text = data['decline_text']
+        learn_text = data['learn_text']
+        practice_text = data['practice_text']
+        accept_text = data['accept_text']
+        sheet_id = data['sheet_id']
 
-    if action_prefix == "decline":
-        await bot.send_message(chat_id=chat_id,
-                               text=decline_text)
-        await callback.message.reply("Отказ отправлен кандидату")
-    elif action_prefix == "delete":
-        cell_range = f"{column_letter}{row_number}"
-        await clear_cell(sheet_id, cell_range)
-        await bot.send_message(chat_id=chat_id,
-                               text=decline_text)
-        await callback.message.reply("Отказ отправлен кандидату, запись из таблицы удалена")
-    elif action_prefix == "learn":
-        await bot.send_message(chat_id=chat_id,
-                               text=learn_text)
-        await callback.message.reply("Приглашение на обучение отправлено")
-    elif action_prefix == "practice":
-        await bot.send_message(chat_id=chat_id,
-                               text=practice_text)
-        await callback.message.reply("Приглашение на стажировку отправлено")
-    elif action_prefix == "accept":
-        await bot.send_message(chat_id=chat_id,
-                               text=accept_text)
-        await callback.message.reply("Приглашение на работу отправлено")
-    
+        if action_prefix == "decline":
+            await bot.send_message(chat_id=chat_id,
+                                text=decline_text)
+            await callback.message.reply("Отказ отправлен кандидату")
+        elif action_prefix == "delete":
+            cell_range = f"{column_letter}{row_number}"
+            await clear_cell(sheet_id, cell_range)
+            await bot.send_message(chat_id=chat_id,
+                                text=decline_text)
+            await callback.message.reply("Отказ отправлен кандидату, запись из таблицы удалена")
+        elif action_prefix == "learn":
+            await bot.send_message(chat_id=chat_id,
+                                text=learn_text)
+            await callback.message.reply("Приглашение на обучение отправлено")
+        elif action_prefix == "practice":
+            await bot.send_message(chat_id=chat_id,
+                                text=practice_text)
+            await callback.message.reply("Приглашение на стажировку отправлено")
+        elif action_prefix == "accept":
+            await bot.send_message(chat_id=chat_id,
+                                text=accept_text)
+            await callback.message.reply("Приглашение на работу отправлено")
+    except Exception as e:
+            logger.error(
+                f"Error for user {callback.from_user.id}: {e}\n"
+                f"Message: {callback.data}"
+            )
     
     
     
