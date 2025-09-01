@@ -81,41 +81,45 @@ class UserState(StatesGroup):
 
 @router.message(CommandStart())
 async def command_start_handler(message: Message, command: CommandObject, state: FSMContext) -> None:
-    await state.set_state(UserState.welcome)
-    args = command.args
-    if args:
-        parts = args.rsplit('_', 1)
-        sheet_id  = parts[0]
-        sheet_range = parts[1]    
-        if len(parts) > 1 and parts[1].isdigit():  
-            sheet_id = parts[0]  
-            sheet_range = parts[1]  
-        else:  
-            sheet_id = args  
-            sheet_range = 2
-        logger.info(f"User {message.from_user.id} started the bot sheetid: {sheet_id} sheet_range: {sheet_range}")
-        
-    else:
-        await message.answer("👋 Здравствуйте. Запустите бота по уникальной ссылке!")
-        
-
-    if sheet_id:
-        try:
-            await state.update_data(sheet_id=sheet_id,
-                                    sheet_range=sheet_range)
-            text = "👋 Добро пожаловать в наш чат-бот! Мы рады, что вы здесь. \n\n🌟В этом боте вы сможете подробнее узнать про нашу компанию, вакансию и записаться на собеседование 🍀💬⚠️ \n\nЕсли бот где-то не отвечает, подождите до 30 секунд, попробуйте повторно нажать на нужную кнопку или написать ее текстом, через 60 секунд выйти из бота и зайти обратно, а так же можете нажать на эту команду /start для запуска бота с начала."
-            keyboard = InlineKeyboardMarkup(inline_keyboard=[
-            [InlineKeyboardButton(text="Поехали", callback_data="next")]
-            ])
+    try:
+        await state.set_state(UserState.welcome)
+        args = command.args
+        if args:
+            parts = args.rsplit('_', 1)
+            sheet_id  = parts[0]
+            sheet_range = parts[1]    
+            if len(parts) > 1 and parts[1].isdigit():  
+                sheet_id = parts[0]  
+                sheet_range = parts[1]  
+            else:  
+                sheet_id = args  
+                sheet_range = 2
+            logger.info(f"User {message.from_user.id} started the bot sheetid: {sheet_id} sheet_range: {sheet_range}")
             
-            await message.answer(f"{text}", reply_markup = keyboard)
-        except Exception as e:
-            logger.error(f"❌ Ошибка при загрузке данных: {str(e)}")
-            await message.answer(f"{message.from_user.id} ❌ Ошибка при загрузке данных: {str(e)}", reply_markup = FAIL_KEYBOARD)
-    else:
-        await message.answer("👋 Здравствуйте. Запустите бота по уникальной ссылке!")
+        else:
+            await message.answer("👋 Здравствуйте. Запустите бота по уникальной ссылке!")
+            
 
-
+        if sheet_id:
+            try:
+                await state.update_data(sheet_id=sheet_id,
+                                        sheet_range=sheet_range)
+                text = "👋 Добро пожаловать в наш чат-бот! Мы рады, что вы здесь. \n\n🌟В этом боте вы сможете подробнее узнать про нашу компанию, вакансию и записаться на собеседование 🍀💬⚠️ \n\nЕсли бот где-то не отвечает, подождите до 30 секунд, попробуйте повторно нажать на нужную кнопку или написать ее текстом, через 60 секунд выйти из бота и зайти обратно, а так же можете нажать на эту команду /start для запуска бота с начала."
+                keyboard = InlineKeyboardMarkup(inline_keyboard=[
+                [InlineKeyboardButton(text="Поехали", callback_data="next")]
+                ])
+                
+                await message.answer(f"{text}", reply_markup = keyboard)
+            except Exception as e:
+                logger.error(f"❌ Ошибка при загрузке данных: {str(e)}")
+                await message.answer(f"{message.from_user.id} ❌ Ошибка при загрузке данных: {str(e)}", reply_markup = FAIL_KEYBOARD)
+        else:
+            await message.answer("👋 Здравствуйте. Запустите бота по уникальной ссылке!")
+    except Exception as e:
+        logger.error(
+                f"Error for user {message.from_user.id}: {e}\n"
+                f"Message: {message.text}"
+            )
 
 
 
